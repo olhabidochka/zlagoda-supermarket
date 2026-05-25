@@ -25,7 +25,12 @@
     <li><a href="{% url 'queries' %}">Запити</a></li>
     {% endif %}
     <li><a href="{% url 'profile' %}">Профіль</a></li>
-    <li><a href="{% url 'logout' %}">Вийти</a></li>
+    <li>
+  <form method="post" action="{% url 'logout' %}" style="display:inline">
+    {% csrf_token %}
+    <button type="submit" class="btn" style="background:transparent;color:rgba(255,255,255,.85);font-size:.9rem;padding:.4rem .8rem;cursor:pointer;">Вийти</button>
+  </form>
+</li>
   </ul>
 </nav>
 {% endif %}
