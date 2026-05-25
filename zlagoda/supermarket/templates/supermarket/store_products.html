@@ -1,0 +1,50 @@
+{% extends 'supermarket/base.html' %}
+{% block title %}— Товари в магазині{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-title">Товари в магазині</div>
+  <div class="filter-bar">
+    <form method="get" style="display:flex;gap:.7rem;flex-wrap:wrap;align-items:flex-end;width:100%">
+      <div class="form-group"><label>UPC пошук</label><input type="text" name="upc" value="{{ upc_search }}"></div>
+      <div class="form-group"><label>Тип</label>
+        <select name="promo">
+          <option value="">Всі</option>
+          <option value="1" {% if promo_filter == '1' %}selected{% endif %}>Акційні</option>
+          <option value="0" {% if promo_filter == '0' %}selected{% endif %}>Звичайні</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Сортування</label>
+        <select name="order">
+          <option value="products_number" {% if order == 'products_number' %}selected{% endif %}>За кількістю</option>
+          <option value="product_name" {% if order == 'product_name' %}selected{% endif %}>За назвою</option>
+        </select>
+      </div>
+      <button class="btn btn-outline">Фільтр</button>
+      <a href="{% url 'store_product_create' %}" class="btn btn-green">+ Додати</a>
+    </form>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>UPC</th><th>Назва</th><th>Ціна</th><th>К-сть</th><th>Тип</th><th>UPC акц.</th><th>Дії</th></tr></thead>
+      <tbody>
+      {% for i in items %}
+      <tr>
+        <td><code>{{ i.UPC }}</code></td>
+        <td>{{ i.product_name }}</td>
+        <td>{{ i.selling_price }}</td>
+        <td>{{ i.products_number }}</td>
+        <td><span class="badge {% if i.promotional_product %}badge-promo{% else %}badge-normal{% endif %}">
+          {% if i.promotional_product %}Акційний{% else %}Звичайний{% endif %}</span></td>
+        <td>{{ i.UPC_prom }}</td>
+        <td>
+          <a href="{% url 'store_product_edit' i.UPC %}" class="btn btn-outline btn-sm">Ред.</a>
+          <a href="{% url 'store_product_delete' i.UPC %}" class="btn btn-danger btn-sm" onclick="return confirm('Видалити?')">Вид.</a>
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="7">Немає даних</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

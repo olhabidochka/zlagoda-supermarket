@@ -1,0 +1,55 @@
+{% extends 'supermarket/base.html' %}
+{% block title %}— SQL Запити{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-title">Спеціальні SQL запити</div>
+  <form method="get" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.5rem">
+    <div class="form-group"><label>З дати</label><input type="date" name="date_from" value="{{ date_from }}"></div>
+    <div class="form-group"><label>По дату</label><input type="date" name="date_to" value="{{ date_to }}"></div>
+    <button class="btn btn-green" name="run_q1" value="1">▶ Запит 1: Категорії з продажами &gt;100</button>
+    <button class="btn btn-accent" name="run_q2" value="1">▶ Запит 2: Касири тільки акційних</button>
+  </form>
+
+  {% if q1 %}
+  <div class="card-title" style="font-size:1rem">Запит 1 — Категорії де продано &gt;100 одиниць</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>№</th><th>Категорія</th><th>Унікальних товарів</th><th>Одиниць продано</th><th>Сума продажів</th><th>Середня ціна</th></tr></thead>
+      <tbody>
+      {% for r in q1 %}
+      <tr>
+        <td>{{ r.category_number }}</td>
+        <td>{{ r.category_name }}</td>
+        <td>{{ r.distinct_products_count }}</td>
+        <td>{{ r.total_units_sold }}</td>
+        <td>{{ r.total_sales_amount }}</td>
+        <td>{{ r.avg_selling_price }}</td>
+      </tr>
+      {% empty %}<tr><td colspan="6">Немає результатів</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if q2 %}
+  <div class="card-title" style="font-size:1rem;margin-top:1.5rem">Запит 2 — Касири що продавали ТІЛЬКИ акційні товари</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>Прізвище</th><th>Ім'я</th><th>По батькові</th></tr></thead>
+      <tbody>
+      {% for r in q2 %}
+      <tr>
+        <td>{{ r.id_employee }}</td>
+        <td>{{ r.empl_surname }}</td>
+        <td>{{ r.empl_name }}</td>
+        <td>{{ r.empl_patronymic }}</td>
+      </tr>
+      {% empty %}<tr><td colspan="4">Немає результатів</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

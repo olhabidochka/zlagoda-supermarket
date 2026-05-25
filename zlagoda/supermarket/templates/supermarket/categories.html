@@ -1,0 +1,27 @@
+{% extends 'supermarket/base.html' %}
+{% block title %}— Категорії{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-title">Категорії товарів
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'category_create' %}" class="btn btn-green btn-sm" style="float:right">+ Додати</a>
+    {% endif %}
+  </div>
+  <table>
+    <thead><tr><th>№</th><th>Назва</th><th>Дії</th></tr></thead>
+    <tbody>
+    {% for c in categories %}
+    <tr>
+      <td>{{ c.category_number }}</td>
+      <td>{{ c.category_name }}</td>
+      <td>
+        <a href="{% url 'category_edit' c.category_number %}" class="btn btn-outline btn-sm">Ред.</a>
+        <a href="{% url 'category_delete' c.category_number %}" class="btn btn-danger btn-sm" onclick="return confirm('Видалити?')">Вид.</a>
+      </td>
+    </tr>
+    {% empty %}<tr><td colspan="3">Немає даних</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

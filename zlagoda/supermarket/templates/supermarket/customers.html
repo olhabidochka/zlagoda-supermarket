@@ -1,0 +1,37 @@
+{% extends 'supermarket/base.html' %}
+{% block title %}— Клієнти{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-title">Клієнти</div>
+  <div class="filter-bar">
+    <form method="get" style="display:flex;gap:.7rem;flex-wrap:wrap;align-items:flex-end;width:100%">
+      <div class="form-group"><label>Прізвище</label><input type="text" name="surname" value="{{ surname }}"></div>
+      <div class="form-group"><label>Відсоток знижки</label><input type="number" name="percent" value="{{ percent }}"></div>
+      <button class="btn btn-outline">Фільтр</button>
+      <a href="{% url 'customer_create' %}" class="btn btn-green">+ Додати</a>
+    </form>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Карта №</th><th>Прізвище</th><th>Ім'я</th><th>Телефон</th><th>Знижка %</th><th>Місто</th><th>Дії</th></tr></thead>
+      <tbody>
+      {% for c in customers %}
+      <tr>
+        <td>{{ c.card_number }}</td>
+        <td>{{ c.cust_surname }}</td>
+        <td>{{ c.cust_name }} {{ c.cust_patronymic }}</td>
+        <td>{{ c.phone_number }}</td>
+        <td>{{ c.percent }}%</td>
+        <td>{{ c.city }}</td>
+        <td>
+          <a href="{% url 'customer_edit' c.card_number %}" class="btn btn-outline btn-sm">Ред.</a>
+          <a href="{% url 'customer_delete' c.card_number %}" class="btn btn-danger btn-sm" onclick="return confirm('Видалити?')">Вид.</a>
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="7">Немає даних</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

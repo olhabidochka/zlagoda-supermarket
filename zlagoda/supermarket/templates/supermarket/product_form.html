@@ -1,0 +1,19 @@
+{% extends 'supermarket/base.html' %}
+{% block title %}— Товар{% endblock %}
+{% block content %}
+<div class="card" style="max-width:500px">
+  <div class="card-title">{{ action }} товар</div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group"><label>Назва</label><input type="text" name="product_name" value="{{ prod.product_name }}" required></div>
+    <div class="form-group"><label>Категорія</label>
+      <select name="category_number" required>
+        {% for c in categories %}<option value="{{ c.category_number }}" {% if prod.category_number == c.category_number %}selected{% endif %}>{{ c.category_name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="form-group"><label>Характеристики</label><input type="text" name="characteristics" value="{{ prod.characteristics }}" required></div>
+    <button class="btn btn-green">{{ action }}</button>
+    <a href="{% url 'products' %}" class="btn btn-outline">Скасувати</a>
+  </form>
+</div>
+{% endblock %}

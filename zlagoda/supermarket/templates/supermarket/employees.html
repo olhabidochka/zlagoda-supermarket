@@ -1,0 +1,48 @@
+{% extends 'supermarket/base.html' %}
+{% block title %}— Персонал{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-title">Персонал</div>
+  <div class="filter-bar">
+    <form method="get" style="display:flex;gap:.7rem;flex-wrap:wrap;align-items:flex-end;width:100%">
+      <div class="form-group"><label>Прізвище</label><input type="text" name="surname" value="{{ surname }}"></div>
+      <div class="form-group">
+        <label>Роль</label>
+        <select name="role">
+          <option value="">Всі</option>
+          <option value="Cashier" {% if role == 'Cashier' %}selected{% endif %}>Касири</option>
+        </select>
+      </div>
+      <button class="btn btn-outline">Фільтр</button>
+      <a href="{% url 'employee_create' %}" class="btn btn-green">+ Додати</a>
+    </form>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>ID</th><th>Прізвище</th><th>Ім'я</th><th>Посада</th>
+        <th>Зарплата</th><th>Телефон</th><th>Місто</th><th>Дії</th>
+      </tr></thead>
+      <tbody>
+      {% for e in employees %}
+      <tr>
+        <td>{{ e.id_employee }}</td>
+        <td>{{ e.empl_surname }}</td>
+        <td>{{ e.empl_name }} {{ e.empl_patronymic }}</td>
+        <td><span class="badge {% if e.empl_role == 'Manager' %}badge-manager{% else %}badge-cashier{% endif %}">{{ e.empl_role }}</span></td>
+        <td>{{ e.salary }}</td>
+        <td>{{ e.phone_number }}</td>
+        <td>{{ e.city }}, {{ e.street }}</td>
+        <td>
+          <a href="{% url 'employee_edit' e.id_employee %}" class="btn btn-outline btn-sm">Ред.</a>
+          <a href="{% url 'employee_delete' e.id_employee %}" class="btn btn-danger btn-sm"
+             onclick="return confirm('Видалити?')">Вид.</a>
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="8">Немає даних</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

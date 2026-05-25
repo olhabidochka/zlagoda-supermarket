@@ -1,0 +1,56 @@
+{% extends 'supermarket/base.html' %}
+{% block title %}— Новий чек{% endblock %}
+{% block content %}
+<div class="card" style="max-width:800px">
+  <div class="card-title">Створення чеку</div>
+  <form method="post" id="check-form">
+    {% csrf_token %}
+    <div class="form-group"><label>Карта клієнта (необов'язково)</label>
+      <select name="card_number">
+        <option value="">— без карти —</option>
+        {% for c in customers %}<option value="{{ c.card_number }}">{{ c.card_number }} — {{ c.cust_surname }} ({{ c.percent }}%)</option>{% endfor %}
+      </select>
+    </div>
+    <div id="items-container">
+      <div class="check-item-row">
+        <div class="form-group"><label>Товар (UPC)</label>
+          <select name="upc">
+            {% for p in store_products %}<option value="{{ p.UPC }}" data-price="{{ p.selling_price }}">{{ p.product_name }} ({{ p.UPC }}) — {{ p.selling_price }} грн</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group"><label>К-сть</label><input type="number" name="qty" min="1" value="1"></div>
+        <div class="form-group"><label>Ціна</label><input type="number" step="0.0001" name="price" required></div>
+        <div class="form-group"><label>&nbsp;</label><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">✕</button></div>
+      </div>
+    </div>
+    <button type="button" class="btn btn-outline" onclick="addRow()">+ Додати товар</button>
+    <br><br>
+    <button class="btn btn-green">Створити чек</button>
+    <a href="{% url 'checks' %}" class="btn btn-outline">Скасувати</a>
+  </form>
+</div>
+<script>
+const products = {{ store_products|safe }};
+// Build price map from select options
+function updatePrice(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  const price = opt.dataset.price;
+  sel.closest('.check-item-row').querySelector('[name=price]').value = price;
+}
+document.querySelectorAll('[name=upc]').forEach(s => {
+  s.addEventListener('change', () => updatePrice(s));
+  updatePrice(s);
+});
+function addRow() {
+  const container = document.getElementById('items-container');
+  const first = container.querySelector('.check-item-row');
+  const clone = first.cloneNode(true);
+  clone.querySelector('[name=upc]').addEventListener('change', function(){ updatePrice(this); });
+  container.appendChild(clone);
+}
+function removeRow(btn) {
+  const rows = document.querySelectorAll('.check-item-row');
+  if (rows.length > 1) btn.closest('.check-item-row').remove();
+}
+</script>
+{% endblock %}

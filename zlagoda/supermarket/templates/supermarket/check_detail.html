@@ -1,0 +1,26 @@
+{% extends 'supermarket/base.html' %}
+{% block title %}— Чек{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px">
+  <div class="card-title">Чек № {{ chk.check_number }}</div>
+  <p>Дата: <b>{{ chk.print_date }}</b> | Сума: <b>{{ chk.sum_total }}</b> грн | ПДВ: <b>{{ chk.vat }}</b></p>
+  <br>
+  <table>
+    <thead><tr><th>Назва товару</th><th>UPC</th><th>К-сть</th><th>Ціна</th><th>Сума</th></tr></thead>
+    <tbody>
+    {% for i in items %}
+    <tr>
+      <td>{{ i.product_name }}</td>
+      <td>{{ i.UPC }}</td>
+      <td>{{ i.product_number }}</td>
+      <td>{{ i.selling_price }}</td>
+      <td>{{ i.product_number|floatformat:0 }} × {{ i.selling_price }}</td>
+    </tr>
+    {% empty %}<tr><td colspan="5">Немає товарів</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <br>
+  <a href="{% url 'checks' %}" class="btn btn-outline">← Назад</a>
+</div>
+{% endblock %}

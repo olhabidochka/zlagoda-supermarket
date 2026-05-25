@@ -1,0 +1,19 @@
+{% extends 'supermarket/base.html' %}
+{% block title %}— Профіль{% endblock %}
+{% block content %}
+<div class="card" style="max-width:500px">
+  <div class="card-title">Мій профіль</div>
+  <table>
+    <tr><td><b>ID</b></td><td>{{ emp.id_employee }}</td></tr>
+    <tr><td><b>Прізвище</b></td><td>{{ emp.empl_surname }}</td></tr>
+    <tr><td><b>Ім'я</b></td><td>{{ emp.empl_name }}</td></tr>
+    <tr><td><b>По батькові</b></td><td>{{ emp.empl_patronymic }}</td></tr>
+    <tr><td><b>Посада</b></td><td>{{ emp.empl_role }}</td></tr>
+    <tr><td><b>Зарплата</b></td><td>{{ emp.salary }}</td></tr>
+    <tr><td><b>Телефон</b></td><td>{{ emp.phone_number }}</td></tr>
+    <tr><td><b>Адреса</b></td><td>{{ emp.city }}, {{ emp.street }}, {{ emp.zip_code }}</td></tr>
+    <tr><td><b>Дата нар.</b></td><td>{{ emp.date_of_birth }}</td></tr>
+    <tr><td><b>Початок роботи</b></td><td>{{ emp.date_of_start }}</td></tr>
+  </table>
+</div>
+{% endblock %}

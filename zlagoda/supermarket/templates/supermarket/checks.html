@@ -1,0 +1,52 @@
+{% extends 'supermarket/base.html' %}
+{% block title %}— Чеки{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-title">Чеки</div>
+  <div class="filter-bar">
+    <form method="get" style="display:flex;gap:.7rem;flex-wrap:wrap;align-items:flex-end;width:100%">
+      {% if role == 'Manager' %}
+      <div class="form-group"><label>Касир</label>
+        <select name="employee_id">
+          <option value="">Всі касири</option>
+          {% for e in cashiers %}<option value="{{ e.id_employee }}" {% if filter_emp == e.id_employee %}selected{% endif %}>{{ e.empl_surname }} {{ e.empl_name }}</option>{% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div class="form-group"><label>З</label><input type="date" name="date_from" value="{{ date_from }}"></div>
+      <div class="form-group"><label>По</label><input type="date" name="date_to" value="{{ date_to }}"></div>
+      <button class="btn btn-outline">Фільтр</button>
+      {% if role == 'Cashier' %}
+      <a href="{% url 'check_create' %}" class="btn btn-green">+ Новий чек</a>
+      {% endif %}
+    </form>
+  </div>
+  <div style="margin-bottom:1rem;font-weight:600;color:var(--green-dark)">
+    Загальна сума: {{ total }} грн
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Чек №</th><th>Касир</th><th>Клієнт</th><th>Дата</th><th>Сума</th><th>ПДВ</th><th>Дії</th></tr></thead>
+      <tbody>
+      {% for ch in checks %}
+      <tr>
+        <td><a href="{% url 'check_detail' ch.check_number %}">{{ ch.check_number }}</a></td>
+        <td>{{ ch.cashier_name }}</td>
+        <td>{{ ch.cust_surname }}</td>
+        <td>{{ ch.print_date }}</td>
+        <td>{{ ch.sum_total }}</td>
+        <td>{{ ch.vat }}</td>
+        <td>
+          <a href="{% url 'check_detail' ch.check_number %}" class="btn btn-outline btn-sm">Деталі</a>
+          {% if role == 'Manager' %}
+          <a href="{% url 'check_delete' ch.check_number %}" class="btn btn-danger btn-sm" onclick="return confirm('Видалити?')">Вид.</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="7">Немає чеків</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

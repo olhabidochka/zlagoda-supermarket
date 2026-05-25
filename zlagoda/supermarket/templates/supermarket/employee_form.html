@@ -1,0 +1,40 @@
+{% extends 'supermarket/base.html' %}
+{% block title %}— Працівник{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px">
+  <div class="card-title">{{ action }} працівника</div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-row">
+      <div class="form-group"><label>ID працівника</label>
+        <input type="text" name="id_employee" value="{{ emp.id_employee }}" {% if action == 'Редагувати' %}readonly{% endif %} required></div>
+      <div class="form-group"><label>Посада</label>
+        <select name="empl_role">
+          <option value="Manager" {% if emp.empl_role == 'Manager' %}selected{% endif %}>Manager</option>
+          <option value="Cashier" {% if emp.empl_role == 'Cashier' %}selected{% endif %}>Cashier</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row-3">
+      <div class="form-group"><label>Прізвище</label><input type="text" name="empl_surname" value="{{ emp.empl_surname }}" required></div>
+      <div class="form-group"><label>Ім'я</label><input type="text" name="empl_name" value="{{ emp.empl_name }}" required></div>
+      <div class="form-group"><label>По батькові</label><input type="text" name="empl_patronymic" value="{{ emp.empl_patronymic }}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Зарплата</label><input type="number" step="0.01" name="salary" value="{{ emp.salary }}" required></div>
+      <div class="form-group"><label>Телефон (макс 13 символів)</label><input type="text" name="phone_number" maxlength="13" value="{{ emp.phone_number }}" required></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Дата народження</label><input type="date" name="date_of_birth" value="{{ emp.date_of_birth }}" required></div>
+      <div class="form-group"><label>Дата початку роботи</label><input type="date" name="date_of_start" value="{{ emp.date_of_start }}" required></div>
+    </div>
+    <div class="form-row-3">
+      <div class="form-group"><label>Місто</label><input type="text" name="city" value="{{ emp.city }}" required></div>
+      <div class="form-group"><label>Вулиця</label><input type="text" name="street" value="{{ emp.street }}" required></div>
+      <div class="form-group"><label>Індекс</label><input type="text" name="zip_code" value="{{ emp.zip_code }}" required></div>
+    </div>
+    <button class="btn btn-green">{{ action }}</button>
+    <a href="{% url 'employees' %}" class="btn btn-outline">Скасувати</a>
+  </form>
+</div>
+{% endblock %}

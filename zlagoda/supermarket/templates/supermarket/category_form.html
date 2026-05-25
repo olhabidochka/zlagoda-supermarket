@@ -1,0 +1,14 @@
+{% extends 'supermarket/base.html' %}
+{% block title %}— Категорія{% endblock %}
+{% block content %}
+<div class="card" style="max-width:400px">
+  <div class="card-title">{{ action }} категорію</div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group"><label>Назва категорії</label>
+      <input type="text" name="category_name" value="{{ cat.category_name }}" required></div>
+    <button class="btn btn-green">{{ action }}</button>
+    <a href="{% url 'categories' %}" class="btn btn-outline">Скасувати</a>
+  </form>
+</div>
+{% endblock %}

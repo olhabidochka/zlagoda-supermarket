@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Вхід — ZLAGODA</title>
+<link rel="stylesheet" href="{% static 'supermarket/style.css' %}">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">🛒</div>
+    <h2>ZLAGODA</h2>
+    {% if form.errors %}
+    <div class="alert alert-error">Невірний логін або пароль</div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>ID працівника (логін)</label>
+        <input type="text" name="username" required autofocus>
+      </div>
+      <div class="form-group">
+        <label>Пароль</label>
+        <input type="password" name="password" required>
+      </div>
+      <button class="btn btn-green" style="width:100%;margin-top:.5rem">Увійти</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>
