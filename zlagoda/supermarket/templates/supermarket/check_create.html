@@ -31,7 +31,7 @@
 </div>
 <script>
 const products = {{ store_products|safe }};
-// Build price map from select options
+
 function updatePrice(sel) {
   const opt = sel.options[sel.selectedIndex];
   const price = opt.dataset.price;
