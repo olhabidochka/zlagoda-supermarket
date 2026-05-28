@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    color: #000;
+    background: #fff;
+  }
+
+  /* Верхній колонтитул */
+  header {
+    text-align: center;
+    padding: 10px 20px 5px;
+    border-bottom: 2px solid #2c7a4b;
+    margin-bottom: 10px;
+  }
+  header .brand {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c7a4b;
+    letter-spacing: 2px;
+  }
+  header .subtitle {
+    font-size: 10px;
+    color: #666;
+    margin-top: 2px;
+  }
+  header .report-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 6px;
+    color: #000;
+  }
+
+  /* Нижній колонтитул */
+  footer {
+    text-align: center;
+    padding: 5px 20px 10px;
+    border-top: 2px solid #2c7a4b;
+    margin-top: 10px;
+    font-size: 9px;
+    color: #666;
+  }
+  footer .footer-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Таблиця */
+  .table-container {
+    padding: 0 20px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  thead th {
+    background-color: #2c7a4b;
+    color: #fff;
+    padding: 6px 4px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: bold;
+    border: 1px solid #1a5c37;
+    word-wrap: break-word;
+  }
+  tbody td {
+    padding: 5px 4px;
+    border: 1px solid #ccc;
+    font-size: 10px;
+    word-wrap: break-word;
+  }
+  tbody tr:nth-child(even) {
+    background-color: #f0f7f4;
+  }
+  tbody tr:hover {
+    background-color: #d4edda;
+  }
+  .total-rows {
+    margin-top: 8px;
+    padding: 0 20px;
+    font-size: 11px;
+    color: #333;
+  }
+
+  /* Кнопки (тільки для екрану) */
+  .print-controls {
+    text-align: center;
+    padding: 15px;
+    background: #f4f6f9;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-green { background: #2c7a4b; color: #fff; }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid #2c7a4b;
+    color: #2c7a4b;
+  }
+
+  /* При друку */
+  @media print {
+    .print-controls { display: none !important; }
+
+    body { font-size: 10px; }
+
+    header {
+      position: running(header);
+    }
+    footer {
+      position: running(footer);
+    }
+
+    @page {
+      size: A4 landscape;
+      margin: 15mm 10mm 15mm 10mm;
+
+      @top-center {
+        content: element(header);
+      }
+      @bottom-center {
+        content: element(footer);
+      }
+    }
+
+    table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+    thead { display: table-header-group; }
+
+    /* Прибрати URL сторінки */
+    @page { margin-bottom: 15mm; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Кнопки керування (тільки на екрані) -->
+<div class="print-controls">
+  <button class="btn btn-green" onclick="window.print()">🖨️ Друкувати</button>
+  <button class="btn btn-outline" onclick="window.close()">✕ Закрити</button>
+</div>
+
+<!-- Верхній колонтитул -->
+<header>
+  <div class="brand">🛒 ZLAGODA</div>
+  <div class="subtitle">Продуктовий міні-супермаркет «ZLAGODA»</div>
+  <div class="report-title">{{ title }}</div>
+</header>
+
+<!-- Таблиця -->
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        {% for h in headers %}
+        <th>{{ h }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in data %}
+      <tr>
+        {% for key, value in row.items %}
+        <td>{% if value is not None %}{{ value }}{% else %}—{% endif %}</td>
+        {% endfor %}
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="{{ headers|length }}" style="text-align:center;padding:20px;color:#666;">
+          Немає даних для відображення
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Кількість записів -->
+<div class="total-rows">
+  Всього записів: <strong>{{ data|length }}</strong>
+</div>
+
+<!-- Нижній колонтитул -->
+<footer>
+  <div class="footer-info">
+    <span>Продуктовий міні-супермаркет «ZLAGODA»</span>
+    <span>Згенеровано: {{ generated_at }}</span>
+    <span>© ZLAGODA {{ generated_at|slice:"-14:-10" }}</span>
+  </div>
+</footer>
+
+</body>
+</html>

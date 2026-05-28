@@ -5,7 +5,7 @@ from django.contrib import messages
 import uuid
 import datetime
 from . import db_utils as db
-from .reports import generate_pdf_report
+from .reports import generate_html_report
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
@@ -591,7 +591,8 @@ def download_report(request, report_type):
 
     elif report_type == 'products':
         data = db.get_all_products()
-        headers = ['ID', 'Категорія №', 'Назва', 'Характеристики', 'Назва категорії']
+        headers = ['ID', 'Категорія №', 'Назва', 'Виробник',
+                   'Характеристики', 'Назва категорії']
         title = 'Звіт: Товари'
 
     elif report_type == 'store_products':
@@ -613,10 +614,9 @@ def download_report(request, report_type):
     else:
         return HttpResponse("Невідомий тип звіту", status=400)
 
-    buffer = generate_pdf_report(title, headers, data)
-    response = HttpResponse(buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{report_type}_report.pdf"'
-    return response
+    from .reports import generate_html_report
+    html = generate_html_report(title, headers, data, report_type)
+    return HttpResponse(html, content_type='text/html; charset=utf-8')
 
 
 # ═══════════════════════════════════════════════════════════
