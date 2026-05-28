@@ -6,6 +6,10 @@ import uuid
 import datetime
 from . import db_utils as db
 from .reports import generate_pdf_report
+from datetime import date
+from dateutil.relativedelta import relativedelta
+
+
 
 
 # ═══════════════════════════════════════════════════════════
@@ -76,32 +80,89 @@ def employees_list(request):
 
 @manager_required
 def employee_create(request):
+    from dateutil.relativedelta import relativedelta
+    max_date = (date.today() - relativedelta(years=18)).isoformat()
+
     if request.method == 'POST':
         data = flatten_post(request.POST)
+
+        if data.get('password') != data.get('password_confirm'):
+            messages.error(request, 'Паролі не співпадають')
+            return render(request, 'supermarket/employee_form.html',
+                          {'action': 'Додати', 'emp': data, 'max_date': max_date})
+
+        if len(data.get('password', '')) < 8:
+            messages.error(request, 'Пароль має бути мінімум 8 символів')
+            return render(request, 'supermarket/employee_form.html',
+                          {'action': 'Додати', 'emp': data, 'max_date': max_date})
+
+        errors = validate_employee(data)
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'supermarket/employee_form.html',
+                          {'action': 'Додати', 'emp': data, 'max_date': max_date})
+
         db.create_employee(data)
 
         from django.contrib.auth.models import User
         if not User.objects.filter(username=data['id_employee']).exists():
             User.objects.create_user(
                 username=data['id_employee'],
-                password=data.get('password', 'changeme123')
+                password=data['password']
             )
         messages.success(request, 'Працівника додано успішно')
         return redirect('employees')
-    return render(request, 'supermarket/employee_form.html', {'action': 'Додати', 'emp': {}})
+
+    return render(request, 'supermarket/employee_form.html', {
+        'action': 'Додати',
+        'emp': {},
+        'max_date': max_date
+    })
+
 
 @manager_required
 def employee_edit(request, pk):
+    from dateutil.relativedelta import relativedelta
+    max_date = (date.today() - relativedelta(years=18)).isoformat()
+
     emp_list = db.get_employee_by_id(pk)
     emp = emp_list[0] if emp_list else {}
+
     if request.method == 'POST':
         data = flatten_post(request.POST)
         data['id_employee'] = pk
+
+        errors = validate_employee(data)
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'supermarket/employee_form.html',
+                          {'action': 'Редагувати', 'emp': data, 'max_date': max_date})
+
         db.update_employee(data)
+
+        new_password = data.get('new_password', '')
+        if new_password:
+            if len(new_password) < 8:
+                messages.error(request, 'Пароль має бути мінімум 8 символів')
+                return render(request, 'supermarket/employee_form.html',
+                              {'action': 'Редагувати', 'emp': data, 'max_date': max_date})
+            from django.contrib.auth.models import User
+            try:
+                user = User.objects.get(username=pk)
+                user.set_password(new_password)
+                user.save()
+            except User.DoesNotExist:
+                User.objects.create_user(username=pk, password=new_password)
+
         messages.success(request, 'Дані працівника оновлено')
         return redirect('employees')
+
     return render(request, 'supermarket/employee_form.html', {
-        'action': 'Редагувати', 'emp': emp
+        'action': 'Редагувати',
+        'emp': emp,
+        'max_date': max_date
     })
 
 
@@ -110,6 +171,42 @@ def employee_delete(request, pk):
     db.delete_employee(pk)
     messages.success(request, 'Працівника видалено')
     return redirect('employees')
+
+
+def validate_employee(data):
+    errors = []
+
+    # Перевірка віку
+    if data.get('date_of_birth'):
+        try:
+            if isinstance(data['date_of_birth'], str):
+                dob = date.fromisoformat(data['date_of_birth'])
+            else:
+                dob = data['date_of_birth']
+
+            today = date.today()
+            age = today.year - dob.year - (
+                    (today.month, today.day) < (dob.month, dob.day)
+            )
+            if age < 18:
+                errors.append('Вік працівника не може бути меншим за 18 років')
+        except ValueError:
+            errors.append('Невірний формат дати народження')
+
+
+    if data.get('phone_number'):
+        if len(data['phone_number']) > 13:
+            errors.append('Номер телефону не може перевищувати 13 символів')
+
+
+    if data.get('salary'):
+        try:
+            if float(data['salary']) < 0:
+                errors.append('Зарплата не може бути від\'ємною')
+        except ValueError:
+            errors.append('Невірний формат зарплати')
+
+    return errors
 
 
 # ═══════════════════════════════════════════════════════════

@@ -159,7 +159,7 @@ def get_all_products(category=None, name=None):
     with connection.cursor() as c:
         sql = """
             SELECT P.id_product, P.category_number, P.product_name,
-                   P.characteristics, C.category_name
+                   P.producer, P.characteristics, C.category_name
             FROM Product P
             JOIN Category C ON C.category_number = P.category_number
             WHERE 1=1
@@ -180,7 +180,7 @@ def get_product_by_id(pid):
     with connection.cursor() as c:
         c.execute("""
             SELECT P.id_product, P.category_number, P.product_name,
-                   P.characteristics, C.category_name
+                   P.producer, P.characteristics, C.category_name
             FROM Product P
             JOIN Category C ON C.category_number = P.category_number
             WHERE P.id_product = %s
@@ -191,24 +191,21 @@ def get_product_by_id(pid):
 def create_product(d):
     with connection.cursor() as c:
         c.execute("""
-            INSERT INTO Product (category_number, product_name, characteristics)
-            VALUES (%s, %s, %s)
-        """, [d['category_number'], d['product_name'], d['characteristics']])
+            INSERT INTO Product (category_number, product_name, producer, characteristics)
+            VALUES (%s, %s, %s, %s)
+        """, [d['category_number'], d['product_name'],
+              d.get('producer', ''), d['characteristics']])
 
 
 def update_product(d):
     with connection.cursor() as c:
         c.execute("""
             UPDATE Product
-            SET category_number = %s, product_name = %s, characteristics = %s
+            SET category_number = %s, product_name = %s,
+                producer = %s, characteristics = %s
             WHERE id_product = %s
         """, [d['category_number'], d['product_name'],
-              d['characteristics'], d['id_product']])
-
-
-def delete_product(pid):
-    with connection.cursor() as c:
-        c.execute("DELETE FROM Product WHERE id_product = %s", [pid])
+              d.get('producer', ''), d['characteristics'], d['id_product']])
 
 
 # ═══════════════════════════════════════════════════════════
