@@ -33,9 +33,9 @@
   <td>{{ p.category_name }}</td>
   <td>{{ p.characteristics }}</td>
   <td>
-    <a href="{% url 'product_edit' p.id_product %}" class="btn btn-outline btn-sm">Ред.</a>
+    <a href="{% url 'product_edit' p.id_product %}" class="btn btn-outline btn-sm">✎</a>
     <a href="{% url 'product_delete' p.id_product %}" class="btn btn-danger btn-sm"
-       onclick="return confirm('Видалити?')">Вид.</a>
+       onclick="return confirm('Видалити?')">×</a>
   </td>
 </tr>
 {% empty %}

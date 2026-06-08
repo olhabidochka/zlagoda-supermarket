@@ -24,8 +24,8 @@
         <td>{{ c.percent }}%</td>
         <td>{{ c.city }}</td>
         <td>
-          <a href="{% url 'customer_edit' c.card_number %}" class="btn btn-outline btn-sm">Ред.</a>
-          <a href="{% url 'customer_delete' c.card_number %}" class="btn btn-danger btn-sm" onclick="return confirm('Видалити?')">Вид.</a>
+          <a href="{% url 'customer_edit' c.card_number %}" class="btn btn-outline btn-sm">✎</a>
+          <a href="{% url 'customer_delete' c.card_number %}" class="btn btn-danger btn-sm" onclick="return confirm('Видалити?')">×</a>
         </td>
       </tr>
       {% empty %}<tr><td colspan="7">Немає даних</td></tr>

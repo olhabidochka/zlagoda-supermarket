@@ -5,31 +5,31 @@
   <div class="card-title">PDF Звіти</div>
   <div class="report-grid">
     <div class="report-card">
-      <h4>👥 Працівники</h4>
-      <a href="{% url 'download_report' 'employees' %}" target="_blank" class="btn btn-green">👁️ Переглянути звіт</a>
+      <h4>Працівники</h4>
+      <a href="{% url 'download_report' 'employees' %}" target="_blank" class="btn btn-green">Переглянути звіт</a>
     </div>
     <div class="report-card">
-      <h4>👷 Касири</h4>
-      <a href="{% url 'download_report' 'cashiers' %}" target="_blank" class="btn btn-green">👁️ Переглянути звіт</a>
+      <h4>Касири</h4>
+      <a href="{% url 'download_report' 'cashiers' %}" target="_blank" class="btn btn-green">Переглянути звіт</a>
     </div>
     <div class="report-card">
-      <h4>🎫 Клієнти</h4>
-      <a href="{% url 'download_report' 'customers' %}" target="_blank" class="btn btn-green">👁️ Переглянути звіт</a>
+      <h4>Клієнти</h4>
+      <a href="{% url 'download_report' 'customers' %}" target="_blank" class="btn btn-green">Переглянути звіт</a>
     </div>
     <div class="report-card">
-      <h4>📁 Категорії</h4>
-      <a href="{% url 'download_report' 'categories' %}" target="_blank" class="btn btn-green">👁️ Переглянути звіт</a>
+      <h4>Категорії</h4>
+      <a href="{% url 'download_report' 'categories' %}" target="_blank" class="btn btn-green">Переглянути звіт</a>
     </div>
     <div class="report-card">
-      <h4>📦 Товари</h4>
-      <a href="{% url 'download_report' 'products' %}" target="_blank" class="btn btn-green">👁️ Переглянути звіт</a>
+      <h4>Товари</h4>
+      <a href="{% url 'download_report' 'products' %}" target="_blank" class="btn btn-green">Переглянути звіт</a>
     </div>
     <div class="report-card">
-      <h4>🏪 Товари в магазині</h4>
-      <a href="{% url 'download_report' 'store_products' %}" target="_blank" class="btn btn-green">👁️ Переглянути звіт</a>
+      <h4>Товари в магазині</h4>
+      <a href="{% url 'download_report' 'store_products' %}" target="_blank" class="btn btn-green">Переглянути звіт</a>
     </div>
     <div class="report-card">
-      <h4>🧾 Чеки</h4>
+      <h4>Чеки</h4>
       <form method="get" action="{% url 'download_report' 'checks' %}">
         <div class="form-group">
           <label>Касир</label>
@@ -42,7 +42,7 @@
         </div>
         <div class="form-group"><label>З</label><input type="date" name="date_from"></div>
         <div class="form-group"><label>По</label><input type="date" name="date_to"></div>
-        <button class="btn btn-green" formtarget="_blank">👁️ Переглянути звіт</button>
+        <button class="btn btn-green" formtarget="_blank">Переглянути звіт</button>
       </form>
     </div>
   </div>

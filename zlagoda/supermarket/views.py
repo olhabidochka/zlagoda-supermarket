@@ -2,32 +2,39 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib import messages
+from datetime import date
 import uuid
 import datetime
 from . import db_utils as db
 from .reports import generate_html_report
-from datetime import date
-from dateutil.relativedelta import relativedelta
 
 
+def get_current_emp(request):
+    emp_list = db.get_employee_by_id(request.user.username)
+    return emp_list[0] if emp_list else None
 
-
-# ═══════════════════════════════════════════════════════════
-# HELPERS
-# ═══════════════════════════════════════════════════════════
 
 def get_current_role(request):
-    emp = db.get_employee_by_id(request.user.username)
+    emp = get_current_emp(request)
     if emp:
-        return emp[0]['empl_role']
+        return emp['empl_role']
     return None
+
+
+def is_manager(role):
+    return role in ('Manager', 'Менеджер')
+
+
+def is_cashier(role):
+    return role in ('Cashier', 'Касир')
 
 
 def manager_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('login')
-        if get_current_role(request) != 'Manager':
+        role = get_current_role(request)
+        if not is_manager(role):
             return HttpResponseForbidden("Доступ заборонено. Тільки для менеджерів.")
         return view_func(request, *args, **kwargs)
     wrapper.__name__ = view_func.__name__
@@ -38,34 +45,52 @@ def flatten_post(post):
     return {k: v[0] if isinstance(v, list) else v for k, v in post.items()}
 
 
-# ═══════════════════════════════════════════════════════════
-# DASHBOARD & PROFILE
-# ═══════════════════════════════════════════════════════════
+def validate_employee(data):
+    errors = []
+    if data.get('date_of_birth'):
+        try:
+            if isinstance(data['date_of_birth'], str):
+                dob = date.fromisoformat(data['date_of_birth'])
+            else:
+                dob = data['date_of_birth']
+            today = date.today()
+            age = today.year - dob.year - (
+                (today.month, today.day) < (dob.month, dob.day)
+            )
+            if age < 18:
+                errors.append('Вік працівника не може бути меншим за 18 років')
+        except ValueError:
+            errors.append('Невірний формат дати народження')
+    if data.get('phone_number'):
+        if len(data['phone_number']) > 13:
+            errors.append('Номер телефону не може перевищувати 13 символів')
+    if data.get('salary'):
+        try:
+            if float(data['salary']) < 0:
+                errors.append('Зарплата не може бути від\'ємною')
+        except ValueError:
+            errors.append('Невірний формат зарплати')
+    return errors
+
 
 @login_required
 def dashboard(request):
-    emp_list = db.get_employee_by_id(request.user.username)
-    emp = emp_list[0] if emp_list else {}
-    role = emp.get('empl_role', 'Cashier')
-    return render(request, 'supermarket/dashboard.html', {'role': role, 'emp': emp})
+    emp = get_current_emp(request)
+    role = emp.get('empl_role', '') if emp else ''
+    return render(request, 'supermarket/dashboard.html', {'role': role, 'emp': emp or {}})
 
 
 @login_required
 def profile(request):
-    emp_list = db.get_employee_by_id(request.user.username)
-    emp = emp_list[0] if emp_list else {}
-    return render(request, 'supermarket/profile.html', {'emp': emp})
+    emp = get_current_emp(request)
+    return render(request, 'supermarket/profile.html', {'emp': emp or {}})
 
-
-# ═══════════════════════════════════════════════════════════
-# EMPLOYEES
-# ═══════════════════════════════════════════════════════════
 
 @manager_required
 def employees_list(request):
-    role_filter = request.GET.get('role', '')
+    role_filter = request.GET.get('role_filter', '')
     surname = request.GET.get('surname', '')
-    if role_filter == 'Cashier':
+    if role_filter in ('Cashier', 'Касир'):
         emps = db.get_cashiers()
     else:
         emps = db.get_all_employees()
@@ -82,29 +107,23 @@ def employees_list(request):
 def employee_create(request):
     from dateutil.relativedelta import relativedelta
     max_date = (date.today() - relativedelta(years=18)).isoformat()
-
     if request.method == 'POST':
         data = flatten_post(request.POST)
-
         if data.get('password') != data.get('password_confirm'):
             messages.error(request, 'Паролі не співпадають')
             return render(request, 'supermarket/employee_form.html',
-                          {'action': 'Додати', 'emp': data, 'max_date': max_date})
-
+                         {'action': 'Додати', 'emp': data, 'max_date': max_date})
         if len(data.get('password', '')) < 8:
             messages.error(request, 'Пароль має бути мінімум 8 символів')
             return render(request, 'supermarket/employee_form.html',
-                          {'action': 'Додати', 'emp': data, 'max_date': max_date})
-
+                         {'action': 'Додати', 'emp': data, 'max_date': max_date})
         errors = validate_employee(data)
         if errors:
             for error in errors:
                 messages.error(request, error)
             return render(request, 'supermarket/employee_form.html',
-                          {'action': 'Додати', 'emp': data, 'max_date': max_date})
-
+                         {'action': 'Додати', 'emp': data, 'max_date': max_date})
         db.create_employee(data)
-
         from django.contrib.auth.models import User
         if not User.objects.filter(username=data['id_employee']).exists():
             User.objects.create_user(
@@ -113,11 +132,8 @@ def employee_create(request):
             )
         messages.success(request, 'Працівника додано успішно')
         return redirect('employees')
-
     return render(request, 'supermarket/employee_form.html', {
-        'action': 'Додати',
-        'emp': {},
-        'max_date': max_date
+        'action': 'Додати', 'emp': {}, 'max_date': max_date
     })
 
 
@@ -125,29 +141,24 @@ def employee_create(request):
 def employee_edit(request, pk):
     from dateutil.relativedelta import relativedelta
     max_date = (date.today() - relativedelta(years=18)).isoformat()
-
     emp_list = db.get_employee_by_id(pk)
     emp = emp_list[0] if emp_list else {}
-
     if request.method == 'POST':
         data = flatten_post(request.POST)
         data['id_employee'] = pk
-
         errors = validate_employee(data)
         if errors:
             for error in errors:
                 messages.error(request, error)
             return render(request, 'supermarket/employee_form.html',
-                          {'action': 'Редагувати', 'emp': data, 'max_date': max_date})
-
+                         {'action': 'Редагувати', 'emp': data, 'max_date': max_date})
         db.update_employee(data)
-
         new_password = data.get('new_password', '')
         if new_password:
             if len(new_password) < 8:
                 messages.error(request, 'Пароль має бути мінімум 8 символів')
                 return render(request, 'supermarket/employee_form.html',
-                              {'action': 'Редагувати', 'emp': data, 'max_date': max_date})
+                             {'action': 'Редагувати', 'emp': data, 'max_date': max_date})
             from django.contrib.auth.models import User
             try:
                 user = User.objects.get(username=pk)
@@ -155,14 +166,10 @@ def employee_edit(request, pk):
                 user.save()
             except User.DoesNotExist:
                 User.objects.create_user(username=pk, password=new_password)
-
         messages.success(request, 'Дані працівника оновлено')
         return redirect('employees')
-
     return render(request, 'supermarket/employee_form.html', {
-        'action': 'Редагувати',
-        'emp': emp,
-        'max_date': max_date
+        'action': 'Редагувати', 'emp': emp, 'max_date': max_date
     })
 
 
@@ -172,46 +179,6 @@ def employee_delete(request, pk):
     messages.success(request, 'Працівника видалено')
     return redirect('employees')
 
-
-def validate_employee(data):
-    errors = []
-
-    # Перевірка віку
-    if data.get('date_of_birth'):
-        try:
-            if isinstance(data['date_of_birth'], str):
-                dob = date.fromisoformat(data['date_of_birth'])
-            else:
-                dob = data['date_of_birth']
-
-            today = date.today()
-            age = today.year - dob.year - (
-                    (today.month, today.day) < (dob.month, dob.day)
-            )
-            if age < 18:
-                errors.append('Вік працівника не може бути меншим за 18 років')
-        except ValueError:
-            errors.append('Невірний формат дати народження')
-
-
-    if data.get('phone_number'):
-        if len(data['phone_number']) > 13:
-            errors.append('Номер телефону не може перевищувати 13 символів')
-
-
-    if data.get('salary'):
-        try:
-            if float(data['salary']) < 0:
-                errors.append('Зарплата не може бути від\'ємною')
-        except ValueError:
-            errors.append('Невірний формат зарплати')
-
-    return errors
-
-
-# ═══════════════════════════════════════════════════════════
-# CATEGORIES
-# ═══════════════════════════════════════════════════════════
 
 @login_required
 def categories_list(request):
@@ -251,10 +218,6 @@ def category_delete(request, pk):
     messages.success(request, 'Категорію видалено')
     return redirect('categories')
 
-
-# ═══════════════════════════════════════════════════════════
-# PRODUCTS
-# ═══════════════════════════════════════════════════════════
 
 @login_required
 def products_list(request):
@@ -307,10 +270,6 @@ def product_delete(request, pk):
     return redirect('products')
 
 
-# ═══════════════════════════════════════════════════════════
-# STORE PRODUCTS
-# ═══════════════════════════════════════════════════════════
-
 @login_required
 def store_products_list(request):
     promo_filter = request.GET.get('promo', '')
@@ -337,6 +296,7 @@ def store_products_list(request):
 @manager_required
 def store_product_create(request):
     prods = db.get_all_products()
+    store_prods = db.get_all_store_products()
     if request.method == 'POST':
         data = flatten_post(request.POST)
         data['promotional_product'] = 1 if data.get('promotional_product') == 'on' else 0
@@ -344,7 +304,8 @@ def store_product_create(request):
         messages.success(request, 'Товар у магазині додано')
         return redirect('store_products')
     return render(request, 'supermarket/store_product_form.html', {
-        'action': 'Додати', 'products': prods, 'item': {}
+        'action': 'Додати', 'products': prods,
+        'store_products': store_prods, 'item': {}
     })
 
 
@@ -352,6 +313,7 @@ def store_product_create(request):
 def store_product_edit(request, pk):
     item = db.get_store_product_by_upc(pk)
     prods = db.get_all_products()
+    store_prods = db.get_all_store_products()
     if request.method == 'POST':
         data = flatten_post(request.POST)
         data['UPC'] = pk
@@ -360,7 +322,8 @@ def store_product_edit(request, pk):
         messages.success(request, 'Товар у магазині оновлено')
         return redirect('store_products')
     return render(request, 'supermarket/store_product_form.html', {
-        'action': 'Редагувати', 'products': prods, 'item': item or {}
+        'action': 'Редагувати', 'products': prods,
+        'store_products': store_prods, 'item': item or {}
     })
 
 
@@ -370,10 +333,6 @@ def store_product_delete(request, pk):
     messages.success(request, 'Товар видалено')
     return redirect('store_products')
 
-
-# ═══════════════════════════════════════════════════════════
-# CUSTOMERS
-# ═══════════════════════════════════════════════════════════
 
 @login_required
 def customers_list(request):
@@ -423,22 +382,20 @@ def customer_delete(request, pk):
     return redirect('customers')
 
 
-# ═══════════════════════════════════════════════════════════
-# CHECKS
-# ═══════════════════════════════════════════════════════════
-
 @login_required
 def checks_list(request):
     role = get_current_role(request)
     emp_id = request.user.username
+    today = date.today().isoformat()
 
-    if role == 'Manager':
+    if is_manager(role):
         filter_emp = request.GET.get('employee_id', '')
+        date_from = request.GET.get('date_from', '')
+        date_to = request.GET.get('date_to', '')
     else:
         filter_emp = emp_id
-
-    date_from = request.GET.get('date_from', '')
-    date_to = request.GET.get('date_to', '')
+        date_from = request.GET.get('date_from', today)
+        date_to = request.GET.get('date_to', today)
 
     checks = db.get_checks(
         employee_id=filter_emp if filter_emp else None,
@@ -450,29 +407,37 @@ def checks_list(request):
         date_from=date_from if date_from else None,
         date_to=date_to if date_to else None
     )
-    cashiers = db.get_cashiers() if role == 'Manager' else []
+    cashiers = db.get_cashiers() if is_manager(role) else []
 
     return render(request, 'supermarket/checks.html', {
         'checks': checks, 'total': total,
         'cashiers': cashiers, 'role': role,
         'filter_emp': filter_emp,
-        'date_from': date_from, 'date_to': date_to
+        'date_from': date_from, 'date_to': date_to,
+        'today': today,
     })
 
 
 @login_required
 def check_detail(request, pk):
+    role = get_current_role(request)
+    emp_id = request.user.username
     chk = db.get_check_by_number(pk)
+    if not chk:
+        messages.error(request, 'Чек не знайдено')
+        return redirect('checks')
+    if is_cashier(role) and chk['id_employee'] != emp_id:
+        return HttpResponseForbidden("Доступ заборонено")
     items = db.get_check_detail(pk)
     return render(request, 'supermarket/check_detail.html', {
-        'chk': chk or {}, 'items': items
+        'chk': chk, 'items': items, 'role': role
     })
 
 
 @login_required
 def check_create(request):
     role = get_current_role(request)
-    if role != 'Cashier':
+    if not is_cashier(role):
         return HttpResponseForbidden("Тільки касир може створювати чеки")
 
     store_prods = db.get_all_store_products()
@@ -541,14 +506,33 @@ def check_delete(request, pk):
     return redirect('checks')
 
 
-# ═══════════════════════════════════════════════════════════
-# REPORTS
-# ═══════════════════════════════════════════════════════════
+@login_required
+def units_sold(request):
+    role = get_current_role(request)
+    if not is_manager(role):
+        return HttpResponseForbidden("Доступ заборонено")
+    store_prods = db.get_all_store_products()
+    result = None
+    upc = request.GET.get('upc', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    if upc:
+        result = db.get_product_units_sold(
+            upc,
+            date_from if date_from else None,
+            date_to if date_to else None
+        )
+    return render(request, 'supermarket/units_sold.html', {
+        'store_products': store_prods,
+        'result': result, 'upc': upc,
+        'date_from': date_from, 'date_to': date_to,
+    })
+
 
 @login_required
 def reports_page(request):
     role = get_current_role(request)
-    if role != 'Manager':
+    if not is_manager(role):
         return HttpResponseForbidden("Доступ заборонено")
     cashiers = db.get_cashiers()
     return render(request, 'supermarket/reports.html', {'cashiers': cashiers})
@@ -557,7 +541,7 @@ def reports_page(request):
 @login_required
 def download_report(request, report_type):
     role = get_current_role(request)
-    if role != 'Manager':
+    if not is_manager(role):
         return HttpResponseForbidden("Доступ заборонено")
 
     emp_id = request.GET.get('employee_id', '')
@@ -570,58 +554,44 @@ def download_report(request, report_type):
                    'Зарплата', 'Дата нар.', 'Початок роботи',
                    'Телефон', 'Місто', 'Вулиця', 'Індекс']
         title = 'Звіт: Всі працівники'
-
     elif report_type == 'cashiers':
         data = db.get_cashiers()
         headers = ['ID', 'Прізвище', 'Ім\'я', 'По батькові', 'Посада',
                    'Зарплата', 'Дата нар.', 'Початок роботи',
                    'Телефон', 'Місто', 'Вулиця', 'Індекс']
         title = 'Звіт: Касири'
-
     elif report_type == 'customers':
         data = db.get_all_customers()
         headers = ['Карта №', 'Прізвище', 'Ім\'я', 'По батькові',
                    'Телефон', 'Місто', 'Вулиця', 'Індекс', 'Знижка %']
         title = 'Звіт: Клієнти'
-
     elif report_type == 'categories':
         data = db.get_all_categories()
         headers = ['№', 'Назва категорії']
         title = 'Звіт: Категорії'
-
     elif report_type == 'products':
         data = db.get_all_products()
-        headers = ['ID', 'Категорія №', 'Назва', 'Виробник',
-                   'Характеристики', 'Назва категорії']
+        headers = ['ID', 'Категорія №', 'Назва', 'Виробник', 'Характеристики', 'Назва категорії']
         title = 'Звіт: Товари'
-
     elif report_type == 'store_products':
         data = db.get_all_store_products()
         headers = ['UPC', 'UPC акц.', 'ID товару', 'Ціна',
                    'К-сть', 'Акційний', 'Назва', 'Характеристики']
         title = 'Звіт: Товари в магазині'
-
     elif report_type == 'checks':
         data = db.get_checks(
             employee_id=emp_id if emp_id else None,
             date_from=date_from if date_from else None,
             date_to=date_to if date_to else None
         )
-        headers = ['Чек №', 'Касир ID', 'Карта', 'Дата',
-                   'Сума', 'ПДВ', 'Касир', 'Клієнт']
+        headers = ['Чек №', 'Касир ID', 'Карта', 'Дата', 'Сума', 'ПДВ', 'Касир', 'Клієнт']
         title = 'Звіт: Чеки'
-
     else:
         return HttpResponse("Невідомий тип звіту", status=400)
 
-    from .reports import generate_html_report
     html = generate_html_report(title, headers, data, report_type)
     return HttpResponse(html, content_type='text/html; charset=utf-8')
 
-
-# ═══════════════════════════════════════════════════════════
-# CUSTOM QUERIES
-# ═══════════════════════════════════════════════════════════
 
 @manager_required
 def custom_queries(request):

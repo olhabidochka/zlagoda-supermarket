@@ -21,7 +21,7 @@
     <table>
       <thead><tr>
         <th>ID</th><th>Прізвище</th><th>Ім'я та по-батькові</th><th>Посада</th>
-        <th>Зарплата</th><th>Телефон</th><th>Місто</th><th>Дії</th>
+        <th>Зарплата</th><th>Телефон</th><th>Місто</th><th>Дії</th><th></th>
       </tr></thead>
       <tbody>
       {% for e in employees %}
@@ -34,9 +34,12 @@
         <td>{{ e.phone_number }}</td>
         <td>{{ e.city }}, {{ e.street }}</td>
         <td>
-          <a href="{% url 'employee_edit' e.id_employee %}" class="btn btn-outline btn-sm">Ред.</a>
+          <a href="{% url 'employee_edit' e.id_employee %}" class="btn btn-outline btn-sm">✎</a>
+            </td>
+            <td>
           <a href="{% url 'employee_delete' e.id_employee %}" class="btn btn-danger btn-sm"
-             onclick="return confirm('Видалити?')">Вид.</a>
+             onclick="return confirm('Видалити?')">×</a>
+               </td>
         </td>
       </tr>
       {% empty %}<tr><td colspan="8">Немає даних</td></tr>

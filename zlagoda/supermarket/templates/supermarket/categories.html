@@ -15,8 +15,8 @@
       <td>{{ c.category_number }}</td>
       <td>{{ c.category_name }}</td>
       <td>
-        <a href="{% url 'category_edit' c.category_number %}" class="btn btn-outline btn-sm">Ред.</a>
-        <a href="{% url 'category_delete' c.category_number %}" class="btn btn-danger btn-sm" onclick="return confirm('Видалити?')">Вид.</a>
+        <a href="{% url 'category_edit' c.category_number %}" class="btn btn-outline btn-sm"></a>
+        <a href="{% url 'category_delete' c.category_number %}" class="btn btn-danger btn-sm" onclick="return confirm('Видалити?')">×</a>
       </td>
     </tr>
     {% empty %}<tr><td colspan="3">Немає даних</td></tr>

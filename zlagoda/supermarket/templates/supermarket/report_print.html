@@ -17,13 +17,13 @@
   header {
     text-align: center;
     padding: 10px 20px 5px;
-    border-bottom: 2px solid #2c7a4b;
+    border-bottom: 2px solid #5854ff;
     margin-bottom: 10px;
   }
   header .brand {
     font-size: 16px;
     font-weight: bold;
-    color: #2c7a4b;
+    color: #5854ff;
     letter-spacing: 2px;
   }
   header .subtitle {
@@ -42,7 +42,7 @@
   footer {
     text-align: center;
     padding: 5px 20px 10px;
-    border-top: 2px solid #2c7a4b;
+    border-top: 2px solid #5854ff;
     margin-top: 10px;
     font-size: 9px;
     color: #666;
@@ -63,13 +63,13 @@
     table-layout: fixed;
   }
   thead th {
-    background-color: #2c7a4b;
-    color: #fff;
+    background-color: #5854ff;
+    color: #d9d7ff;
     padding: 6px 4px;
     text-align: left;
     font-size: 10px;
     font-weight: bold;
-    border: 1px solid #1a5c37;
+    border: 1px solid #5854ff;
     word-wrap: break-word;
   }
   tbody td {
@@ -79,10 +79,10 @@
     word-wrap: break-word;
   }
   tbody tr:nth-child(even) {
-    background-color: #f0f7f4;
+    background-color: #f2f0f7;
   }
   tbody tr:hover {
-    background-color: #d4edda;
+    background-color: #d9d4ed;
   }
   .total-rows {
     margin-top: 8px;
@@ -111,11 +111,11 @@
     text-decoration: none;
     display: inline-block;
   }
-  .btn-green { background: #2c7a4b; color: #fff; }
+  .btn-green { background: #5854ff; color: #d9d7ff; }
   .btn-outline {
     background: transparent;
-    border: 1px solid #2c7a4b;
-    color: #2c7a4b;
+    border: 1px solid #5854ff;
+    color: #5854ff;
   }
 
   /* При друку */
@@ -156,13 +156,13 @@
 
 <!-- Кнопки керування (тільки на екрані) -->
 <div class="print-controls">
-  <button class="btn btn-green" onclick="window.print()">🖨️ Друкувати</button>
+  <button class="btn btn-green" onclick="window.print()">Друкувати</button>
   <button class="btn btn-outline" onclick="window.close()">✕ Закрити</button>
 </div>
 
 <!-- Верхній колонтитул -->
 <header>
-  <div class="brand">🛒 ZLAGODA</div>
+  <div class="brand">ZLAGODA</div>
   <div class="subtitle">Продуктовий міні-супермаркет «ZLAGODA»</div>
   <div class="report-title">{{ title }}</div>
 </header>

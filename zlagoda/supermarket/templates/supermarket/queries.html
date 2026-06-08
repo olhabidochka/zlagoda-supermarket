@@ -2,7 +2,7 @@
 {% block title %}— SQL Запити{% endblock %}
 {% block content %}
 <div class="card">
-  <div class="card-title">Спеціальні SQL запити</div>
+  <div class="card-title">Додаткові функції</div>
   <form method="get" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.5rem">
     <div class="form-group"><label>З дати</label><input type="date" name="date_from" value="{{ date_from }}"></div>
     <div class="form-group"><label>По дату</label><input type="date" name="date_to" value="{{ date_to }}"></div>
@@ -11,7 +11,7 @@
   </form>
 
   {% if q1 %}
-  <div class="card-title" style="font-size:1rem">Запит 1 — Категорії де продано &gt;100 одиниць</div>
+  <div class="card-title" style="font-size:1rem">Категорії де продано &gt;100 одиниць</div>
   <div class="table-wrap">
     <table>
       <thead><tr><th>№</th><th>Категорія</th><th>Унікальних товарів</th><th>Одиниць продано</th><th>Сума продажів</th><th>Середня ціна</th></tr></thead>
@@ -33,7 +33,7 @@
   {% endif %}
 
   {% if q2 %}
-  <div class="card-title" style="font-size:1rem;margin-top:1.5rem">Запит 2 — Касири що продавали ТІЛЬКИ акційні товари</div>
+  <div class="card-title" style="font-size:1rem;margin-top:1.5rem">Касири що продавали ТІЛЬКИ акційні товари</div>
   <div class="table-wrap">
     <table>
       <thead><tr><th>ID</th><th>Прізвище</th><th>Ім'я</th><th>По батькові</th></tr></thead>

@@ -1,5 +1,6 @@
 {% extends 'supermarket/base.html' %}
-{% block title %}— Головна{% endblock %}
+{% load static %} {% block title %}— Головна{% endblock %}
+
 {% block content %}
 <div class="card">
   <div class="card-title">
@@ -10,17 +11,21 @@
   </div>
   <div class="dash-grid">
     {% if role == 'Manager' %}
-    <a class="dash-card" href="{% url 'employees' %}"><div class="icon">👥</div><span>Персонал</span></a>
+    <a class="dash-card" href="{% url 'employees' %}"><div class="icon"></div><span>Персонал</span></a>
     {% endif %}
-    <a class="dash-card" href="{% url 'categories' %}"><div class="icon">📁</div><span>Категорії</span></a>
-    <a class="dash-card" href="{% url 'products' %}"><div class="icon">📦</div><span>Товари</span></a>
-    <a class="dash-card" href="{% url 'store_products' %}"><div class="icon">🏪</div><span>В магазині</span></a>
-    <a class="dash-card" href="{% url 'customers' %}"><div class="icon">🎫</div><span>Клієнти</span></a>
-    <a class="dash-card" href="{% url 'checks' %}"><div class="icon">🧾</div><span>Чеки</span></a>
+    <a class="dash-card" href="{% url 'categories' %}"><div class="icon"></div><span>Категорії</span></a>
+    <a class="dash-card" href="{% url 'products' %}"><div class="icon"></div><span>Товари</span></a>
+    <a class="dash-card" href="{% url 'store_products' %}"><div class="icon"></div><span>В магазині</span></a>
+    <a class="dash-card" href="{% url 'customers' %}"><div class="icon"></div><span>Клієнти</span></a>
+    <a class="dash-card" href="{% url 'checks' %}"><div class="icon"></div><span>Чеки</span></a>
     {% if role == 'Manager' %}
-    <a class="dash-card" href="{% url 'reports' %}"><div class="icon">📊</div><span>Звіти PDF</span></a>
-    <a class="dash-card" href="{% url 'queries' %}"><div class="icon">🔍</div><span>SQL Запити</span></a>
+    <a class="dash-card" href="{% url 'reports' %}"><div class="icon"></div><span>Звіти PDF</span></a>
+    <a class="dash-card" href="{% url 'queries' %}"><div class="icon"></div><span>Додаткові функції</span></a>
     {% endif %}
   </div>
+</div>
+
+<div class="dashboard-banner">
+  <img src="{% static 'image 238.jpg' %}" alt="Dashboard Banner">
 </div>
 {% endblock %}
