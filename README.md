@@ -12,7 +12,7 @@
 ## Основні сторінки
 | Головна | Товари |
 |--------|--------|
-| ![home](screenshots/home.png) | ![products](screenshots/products.png) |
+| ![main](screenshots/main.png) | ![products](screenshots/products.png) |
 
 | Категорії | Чеки |
 |--------|--------|
