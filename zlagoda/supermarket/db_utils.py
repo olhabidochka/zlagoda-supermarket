@@ -547,3 +547,28 @@ def query_cashiers_only_promo():
             ORDER BY E.empl_surname, E.empl_name
         """)
         return dictfetchall(c)
+def get_cashiers():
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT id_employee, empl_surname, empl_name, empl_patronymic,
+                   empl_role, salary, date_of_birth, date_of_start,
+                   phone_number, city, street, zip_code
+            FROM Employee
+            WHERE empl_role IN ('Cashier', 'Касир')
+            ORDER BY empl_surname
+        """)
+        return dictfetchall(c)
+
+
+def get_managers():
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT id_employee, empl_surname, empl_name, empl_patronymic,
+                   empl_role, salary, date_of_birth, date_of_start,
+                   phone_number, city, street, zip_code
+            FROM Employee
+            WHERE empl_role IN ('Manager', 'Менеджер')
+            ORDER BY empl_surname
+        """)
+        return dictfetchall(c)
+

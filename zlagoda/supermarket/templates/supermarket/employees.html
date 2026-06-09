@@ -5,44 +5,60 @@
   <div class="card-title">Персонал</div>
   <div class="filter-bar">
     <form method="get" style="display:flex;gap:.7rem;flex-wrap:wrap;align-items:flex-end;width:100%">
-      <div class="form-group"><label>Прізвище</label><input type="text" name="surname" value="{{ surname }}"></div>
+      <div class="form-group">
+        <label>Прізвище</label>
+        <input type="text" name="surname" value="{{ surname }}">
+      </div>
       <div class="form-group">
         <label>Роль</label>
-        <select name="role">
+        <select name="role_filter">
           <option value="">Всі</option>
-          <option value="Cashier" {% if role == 'Cashier' %}selected{% endif %}>Касири</option>
+          <option value="Касир" {% if role_filter == 'Касир' %}selected{% endif %}>Касири</option>
+          <option value="Менеджер" {% if role_filter == 'Менеджер' %}selected{% endif %}>Менеджери</option>
         </select>
       </div>
-      <button class="btn btn-outline">Фільтр</button>
-      <a href="{% url 'employee_create' %}" class="btn btn-green">+ Додати</a>
+      <div style="display:flex;gap:.7rem;align-items:flex-end">
+        <button class="btn btn-outline">Фільтр</button>
+        <a href="{% url 'employee_create' %}" class="btn btn-green">+ Додати</a>
+      </div>
     </form>
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr>
-        <th>ID</th><th>Прізвище</th><th>Ім'я та по-батькові</th><th>Посада</th>
-        <th>Зарплата</th><th>Телефон</th><th>Місто</th><th>Дії</th><th></th>
-      </tr></thead>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Прізвище</th>
+          <th>Ім'я та по-батькові</th>
+          <th>Посада</th>
+          <th>Зарплата</th>
+          <th>Телефон</th>
+          <th>Адреса</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
       <tbody>
       {% for e in employees %}
       <tr>
         <td>{{ e.id_employee }}</td>
         <td>{{ e.empl_surname }}</td>
-        <td>{{ e.empl_name }} {{ e.empl_patronymic }}</td>
-        <td><span class="badge {% if e.empl_role == 'Manager' %}badge-manager{% else %}badge-cashier{% endif %}">{{ e.empl_role }}</span></td>
-        <td>{{ e.salary }}</td>
-        <td>{{ e.phone_number }}</td>
-        <td>{{ e.city }}, {{ e.street }}</td>
+        <td style="white-space:nowrap">{{ e.empl_name }} {{ e.empl_patronymic }}</td>
         <td>
-          <a href="{% url 'employee_edit' e.id_employee %}" class="btn btn-outline btn-sm">✎</a>
-            </td>
-            <td>
+          <span class="badge {% if e.empl_role == 'Manager' or e.empl_role == 'Менеджер' %}badge-manager{% else %}badge-cashier{% endif %}">
+            {{ e.empl_role }}
+          </span>
+        </td>
+        <td>{{ e.salary }}</td>
+        <td style="white-space:nowrap">{{ e.phone_number }}</td>
+        <td>{{ e.city }}, {{ e.street }}</td>
+        <td style="white-space:nowrap">
+          <a href="{% url 'employee_edit' e.id_employee %}" class="btn btn-outline btn-sm">✏️</a>
           <a href="{% url 'employee_delete' e.id_employee %}" class="btn btn-danger btn-sm"
-             onclick="return confirm('Видалити?')">×</a>
-               </td>
+             onclick="return confirm('Видалити працівника?')">✕</a>
         </td>
       </tr>
-      {% empty %}<tr><td colspan="8">Немає даних</td></tr>
+      {% empty %}
+      <tr><td colspan="8" style="text-align:center;padding:1rem">Немає даних</td></tr>
       {% endfor %}
       </tbody>
     </table>

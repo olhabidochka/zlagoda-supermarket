@@ -90,12 +90,17 @@ def profile(request):
 def employees_list(request):
     role_filter = request.GET.get('role_filter', '')
     surname = request.GET.get('surname', '')
+
     if role_filter in ('Cashier', 'Касир'):
         emps = db.get_cashiers()
+    elif role_filter in ('Manager', 'Менеджер'):
+        emps = db.get_managers()
     else:
         emps = db.get_all_employees()
+
     if surname:
         emps = [e for e in emps if surname.lower() in e['empl_surname'].lower()]
+
     return render(request, 'supermarket/employees.html', {
         'employees': emps,
         'surname': surname,
@@ -611,4 +616,64 @@ def custom_queries(request):
     return render(request, 'supermarket/queries.html', {
         'q1': query1_data, 'q2': query2_data,
         'date_from': date_from, 'date_to': date_to
+    })
+
+@login_required
+def profile(request):
+    emp = get_current_emp(request)
+    return render(request, 'supermarket/profile.html', {'emp': emp or {}})
+
+
+@login_required
+def profile_edit(request):
+    from dateutil.relativedelta import relativedelta
+    max_date = (date.today() - relativedelta(years=18)).isoformat()
+    emp = get_current_emp(request)
+    if not emp:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        data = flatten_post(request.POST)
+        data['id_employee'] = request.user.username
+        data['empl_role'] = emp['empl_role']
+        data['salary'] = emp['salary']
+
+        errors = validate_employee(data)
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'supermarket/profile_edit.html', {
+                'emp': data, 'max_date': max_date
+            })
+
+        db.update_employee(data)
+
+        new_password = data.get('new_password', '')
+        confirm_password = data.get('confirm_password', '')
+        if new_password:
+            if new_password != confirm_password:
+                messages.error(request, 'Паролі не співпадають')
+                return render(request, 'supermarket/profile_edit.html', {
+                    'emp': data, 'max_date': max_date
+                })
+            if len(new_password) < 8:
+                messages.error(request, 'Пароль має бути мінімум 8 символів')
+                return render(request, 'supermarket/profile_edit.html', {
+                    'emp': data, 'max_date': max_date
+                })
+            from django.contrib.auth.models import User
+            try:
+                user = User.objects.get(username=request.user.username)
+                user.set_password(new_password)
+                user.save()
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, user)
+            except User.DoesNotExist:
+                pass
+
+        messages.success(request, 'Профіль оновлено успішно')
+        return redirect('profile')
+
+    return render(request, 'supermarket/profile_edit.html', {
+        'emp': emp, 'max_date': max_date
     })

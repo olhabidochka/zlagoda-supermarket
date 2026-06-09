@@ -43,4 +43,5 @@ urlpatterns = [
     path('queries/', views.custom_queries, name='queries'),
 
     path('profile/', views.profile, name='profile'),
+    path('profile/edit/', views.profile_edit, name='profile_edit'),
 ]

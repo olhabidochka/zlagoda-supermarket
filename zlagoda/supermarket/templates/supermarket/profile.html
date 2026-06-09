@@ -1,19 +1,56 @@
 {% extends 'supermarket/base.html' %}
 {% block title %}— Профіль{% endblock %}
 {% block content %}
-<div class="card" style="max-width:500px">
-  <div class="card-title">Мій профіль</div>
-  <table>
-    <tr><td><b>ID</b></td><td>{{ emp.id_employee }}</td></tr>
-    <tr><td><b>Прізвище</b></td><td>{{ emp.empl_surname }}</td></tr>
-    <tr><td><b>Ім'я</b></td><td>{{ emp.empl_name }}</td></tr>
-    <tr><td><b>По батькові</b></td><td>{{ emp.empl_patronymic }}</td></tr>
-    <tr><td><b>Посада</b></td><td>{{ emp.empl_role }}</td></tr>
-    <tr><td><b>Зарплата</b></td><td>{{ emp.salary }}</td></tr>
-    <tr><td><b>Телефон</b></td><td>{{ emp.phone_number }}</td></tr>
-    <tr><td><b>Адреса</b></td><td>{{ emp.city }}, {{ emp.street }}, {{ emp.zip_code }}</td></tr>
-    <tr><td><b>Дата нар.</b></td><td>{{ emp.date_of_birth }}</td></tr>
-    <tr><td><b>Початок роботи</b></td><td>{{ emp.date_of_start }}</td></tr>
+<div class="card" style="max-width:600px">
+  <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+    <span>Мій профіль</span>
+    <a href="{% url 'profile_edit' %}" class="btn btn-green btn-sm">Редагувати</a>
+  </div>
+  <table style="width:100%">
+    <tr>
+      <td style="padding:.6rem 1rem;font-weight:600;width:40%">ID</td>
+      <td style="padding:.6rem 1rem">{{ emp.id_employee }}</td>
+    </tr>
+    <tr style="background:var(--green-light)">
+      <td style="padding:.6rem 1rem;font-weight:600">Прізвище</td>
+      <td style="padding:.6rem 1rem">{{ emp.empl_surname }}</td>
+    </tr>
+    <tr>
+      <td style="padding:.6rem 1rem;font-weight:600">Ім'я</td>
+      <td style="padding:.6rem 1rem">{{ emp.empl_name }}</td>
+    </tr>
+    <tr style="background:var(--green-light)">
+      <td style="padding:.6rem 1rem;font-weight:600">По батькові</td>
+      <td style="padding:.6rem 1rem">{{ emp.empl_patronymic|default:"—" }}</td>
+    </tr>
+    <tr>
+      <td style="padding:.6rem 1rem;font-weight:600">Посада</td>
+      <td style="padding:.6rem 1rem">
+        <span class="badge {% if emp.empl_role == 'Manager' or emp.empl_role == 'Менеджер' %}badge-manager{% else %}badge-cashier{% endif %}">
+          {{ emp.empl_role }}
+        </span>
+      </td>
+    </tr>
+    <tr style="background:var(--green-light)">
+      <td style="padding:.6rem 1rem;font-weight:600">Зарплата</td>
+      <td style="padding:.6rem 1rem">{{ emp.salary }} грн</td>
+    </tr>
+    <tr>
+      <td style="padding:.6rem 1rem;font-weight:600">Телефон</td>
+      <td style="padding:.6rem 1rem">{{ emp.phone_number }}</td>
+    </tr>
+    <tr style="background:var(--green-light)">
+      <td style="padding:.6rem 1rem;font-weight:600">Адреса</td>
+      <td style="padding:.6rem 1rem">{{ emp.city }}, вул. {{ emp.street }}, {{ emp.zip_code }}</td>
+    </tr>
+    <tr>
+      <td style="padding:.6rem 1rem;font-weight:600">Дата нар.</td>
+      <td style="padding:.6rem 1rem">{{ emp.date_of_birth }}</td>
+    </tr>
+    <tr style="background:var(--green-light)">
+      <td style="padding:.6rem 1rem;font-weight:600">Початок роботи</td>
+      <td style="padding:.6rem 1rem">{{ emp.date_of_start }}</td>
+    </tr>
   </table>
 </div>
 {% endblock %}

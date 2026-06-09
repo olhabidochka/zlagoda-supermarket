@@ -35,17 +35,39 @@ nav .brand {
   font-weight: 700;
   text-decoration: none;
   letter-spacing: 1px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
-nav ul { list-style: none; display: flex; gap: .3rem; }
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: .1rem;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+nav ul li {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
 nav ul li a {
   color: rgba(255,255,255,.85);
   text-decoration: none;
-  padding: .4rem .8rem;
+  padding: .4rem .6rem;
   border-radius: 4px;
-  font-size: .9rem;
+  font-size: .85rem;
   transition: background .2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
-nav ul li a:hover { background: rgba(255,255,255,.15); color: var(--white); }
+nav ul li a:hover {
+  background: rgba(255,255,255,.15);
+  color: var(--white);
+}
 
 /* MAIN */
 main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
