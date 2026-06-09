@@ -1,4 +1,29 @@
-# zlagoda-supermarket
+# Система управління супермаркетом «Злагода»
+## Опис проєкту
+«Злагода» — це вебсайт для управління діяльністю супермаркету який дозволяє вести облік товарів, категорій, працівників, клієнтів, чеків та продажів через зручний вебінтерфейс.
+
+## Використані технології
+- Python
+- Django
+- SQLite
+- HTML/CSS
+- JavaScript
+
+## Основні сторінки
+| Головна | Товари |
+|--------|--------|
+| ![home](screenshots/home.png) | ![products](screenshots/products.png) |
+
+| Категорії | Чеки |
+|--------|--------|
+| ![categories](screenshots/categories.png) | ![receipts](screenshots/receipts.png) |
+
+| Звіти | Профіль |
+|--------|--------|
+| ![reports](screenshots/reports.png) | ![profile](screenshots/profile.png) |
+
+Та інші...
+
 ## Як запустити проєкт
 
 ### 1. Клонування репозиторію
