@@ -14,6 +14,24 @@ def dictfetchone(cursor):
     return dict(zip(columns, row))
 
 
+def format_dates(rows):
+    for row in rows:
+        if row.get('date_of_birth'):
+            row['date_of_birth'] = str(row['date_of_birth'])[:10]
+        if row.get('date_of_start'):
+            row['date_of_start'] = str(row['date_of_start'])[:10]
+    return rows
+
+
+def format_dates_one(row):
+    if row:
+        if row.get('date_of_birth'):
+            row['date_of_birth'] = str(row['date_of_birth'])[:10]
+        if row.get('date_of_start'):
+            row['date_of_start'] = str(row['date_of_start'])[:10]
+    return row
+
+
 # ═══════════════════════════════════════════════════════════
 # EMPLOYEES
 # ═══════════════════════════════════════════════════════════
@@ -27,7 +45,7 @@ def get_all_employees():
             FROM Employee
             ORDER BY empl_surname
         """)
-        return dictfetchall(c)
+        return format_dates(dictfetchall(c))
 
 
 def get_cashiers():
@@ -37,10 +55,23 @@ def get_cashiers():
                    empl_role, salary, date_of_birth, date_of_start,
                    phone_number, city, street, zip_code
             FROM Employee
-            WHERE empl_role = 'Cashier'
+            WHERE empl_role IN ('Cashier', 'Касир')
             ORDER BY empl_surname
         """)
-        return dictfetchall(c)
+        return format_dates(dictfetchall(c))
+
+
+def get_managers():
+    with connection.cursor() as c:
+        c.execute("""
+            SELECT id_employee, empl_surname, empl_name, empl_patronymic,
+                   empl_role, salary, date_of_birth, date_of_start,
+                   phone_number, city, street, zip_code
+            FROM Employee
+            WHERE empl_role IN ('Manager', 'Менеджер')
+            ORDER BY empl_surname
+        """)
+        return format_dates(dictfetchall(c))
 
 
 def get_employee_by_id(eid):
@@ -52,7 +83,7 @@ def get_employee_by_id(eid):
             FROM Employee
             WHERE id_employee = %s
         """, [eid])
-        return dictfetchall(c)
+        return format_dates(dictfetchall(c))
 
 
 def get_employee_phone_by_surname(surname):
@@ -102,7 +133,10 @@ def update_employee(d):
 
 def delete_employee(eid):
     with connection.cursor() as c:
-        c.execute("DELETE FROM Employee WHERE id_employee = %s", [eid])
+        c.execute("""
+            DELETE FROM Employee
+            WHERE id_employee = %s
+        """, [eid])
 
 
 # ═══════════════════════════════════════════════════════════
@@ -132,14 +166,16 @@ def get_category_by_id(num):
 def create_category(name):
     with connection.cursor() as c:
         c.execute("""
-            INSERT INTO Category (category_name) VALUES (%s)
+            INSERT INTO Category (category_name)
+            VALUES (%s)
         """, [name])
 
 
 def update_category(num, name):
     with connection.cursor() as c:
         c.execute("""
-            UPDATE Category SET category_name = %s
+            UPDATE Category
+            SET category_name = %s
             WHERE category_number = %s
         """, [name, num])
 
@@ -147,10 +183,9 @@ def update_category(num, name):
 def delete_category(num):
     with connection.cursor() as c:
         c.execute("""
-            DELETE FROM Category WHERE category_number = %s
+            DELETE FROM Category
+            WHERE category_number = %s
         """, [num])
-
-
 
 
 # ═══════════════════════════════════════════════════════════
@@ -159,22 +194,42 @@ def delete_category(num):
 
 def get_all_products(category=None, name=None):
     with connection.cursor() as c:
-        sql = """
-            SELECT P.id_product, P.category_number, P.product_name,
-                   P.producer, P.characteristics, C.category_name
-            FROM Product P
-            JOIN Category C ON C.category_number = P.category_number
-            WHERE 1=1
-        """
-        params = []
-        if category:
-            sql += " AND P.category_number = %s"
-            params.append(category)
-        if name:
-            sql += " AND P.product_name LIKE %s"
-            params.append(f'%{name}%')
-        sql += " ORDER BY P.product_name"
-        c.execute(sql, params)
+        if category and name:
+            c.execute("""
+                SELECT P.id_product, P.category_number, P.product_name,
+                       P.producer, P.characteristics, C.category_name
+                FROM Product P
+                JOIN Category C ON C.category_number = P.category_number
+                WHERE P.category_number = %s
+                  AND P.product_name LIKE %s
+                ORDER BY P.product_name
+            """, [category, f'%{name}%'])
+        elif category:
+            c.execute("""
+                SELECT P.id_product, P.category_number, P.product_name,
+                       P.producer, P.characteristics, C.category_name
+                FROM Product P
+                JOIN Category C ON C.category_number = P.category_number
+                WHERE P.category_number = %s
+                ORDER BY P.product_name
+            """, [category])
+        elif name:
+            c.execute("""
+                SELECT P.id_product, P.category_number, P.product_name,
+                       P.producer, P.characteristics, C.category_name
+                FROM Product P
+                JOIN Category C ON C.category_number = P.category_number
+                WHERE P.product_name LIKE %s
+                ORDER BY P.product_name
+            """, [f'%{name}%'])
+        else:
+            c.execute("""
+                SELECT P.id_product, P.category_number, P.product_name,
+                       P.producer, P.characteristics, C.category_name
+                FROM Product P
+                JOIN Category C ON C.category_number = P.category_number
+                ORDER BY P.product_name
+            """)
         return dictfetchall(c)
 
 
@@ -209,9 +264,14 @@ def update_product(d):
         """, [d['category_number'], d['product_name'],
               d.get('producer', ''), d['characteristics'], d['id_product']])
 
+
 def delete_product(pid):
     with connection.cursor() as c:
-        c.execute("DELETE FROM Product WHERE id_product = %s", [pid])
+        c.execute("""
+            DELETE FROM Product
+            WHERE id_product = %s
+        """, [pid])
+
 
 # ═══════════════════════════════════════════════════════════
 # STORE PRODUCTS
@@ -222,21 +282,35 @@ def get_all_store_products(promo=None, order_by='products_number'):
     if order_by not in allowed_orders:
         order_by = 'products_number'
     with connection.cursor() as c:
-        sql = """
-            SELECT SP.UPC, SP.UPC_prom, SP.id_product, SP.selling_price,
-                   SP.products_number, SP.promotional_product,
-                   P.product_name, P.characteristics
-            FROM Store_Product SP
-            JOIN Product P ON P.id_product = SP.id_product
-            WHERE 1=1
-        """
-        params = []
         if promo is True:
-            sql += " AND SP.promotional_product = 1"
+            c.execute("""
+                SELECT SP.UPC, SP.UPC_prom, SP.id_product, SP.selling_price,
+                       SP.products_number, SP.promotional_product,
+                       P.product_name, P.characteristics
+                FROM Store_Product SP
+                JOIN Product P ON P.id_product = SP.id_product
+                WHERE SP.promotional_product = 1
+                ORDER BY SP.products_number
+            """)
         elif promo is False:
-            sql += " AND SP.promotional_product = 0"
-        sql += f" ORDER BY {order_by}"
-        c.execute(sql, params)
+            c.execute("""
+                SELECT SP.UPC, SP.UPC_prom, SP.id_product, SP.selling_price,
+                       SP.products_number, SP.promotional_product,
+                       P.product_name, P.characteristics
+                FROM Store_Product SP
+                JOIN Product P ON P.id_product = SP.id_product
+                WHERE SP.promotional_product = 0
+                ORDER BY SP.products_number
+            """)
+        else:
+            c.execute("""
+                SELECT SP.UPC, SP.UPC_prom, SP.id_product, SP.selling_price,
+                       SP.products_number, SP.promotional_product,
+                       P.product_name, P.characteristics
+                FROM Store_Product SP
+                JOIN Product P ON P.id_product = SP.id_product
+                ORDER BY SP.products_number
+            """)
         return dictfetchall(c)
 
 
@@ -281,7 +355,10 @@ def update_store_product(d):
 
 def delete_store_product(upc):
     with connection.cursor() as c:
-        c.execute("DELETE FROM Store_Product WHERE UPC = %s", [upc])
+        c.execute("""
+            DELETE FROM Store_Product
+            WHERE UPC = %s
+        """, [upc])
 
 
 # ═══════════════════════════════════════════════════════════
@@ -290,21 +367,38 @@ def delete_store_product(upc):
 
 def get_all_customers(percent=None, surname=None):
     with connection.cursor() as c:
-        sql = """
-            SELECT card_number, cust_surname, cust_name, cust_patronymic,
-                   phone_number, city, street, zip_code, percent
-            FROM Customer_Card
-            WHERE 1=1
-        """
-        params = []
-        if percent:
-            sql += " AND percent = %s"
-            params.append(percent)
-        if surname:
-            sql += " AND cust_surname LIKE %s"
-            params.append(f'%{surname}%')
-        sql += " ORDER BY cust_surname"
-        c.execute(sql, params)
+        if percent and surname:
+            c.execute("""
+                SELECT card_number, cust_surname, cust_name, cust_patronymic,
+                       phone_number, city, street, zip_code, percent
+                FROM Customer_Card
+                WHERE percent = %s
+                  AND cust_surname LIKE %s
+                ORDER BY cust_surname
+            """, [percent, f'%{surname}%'])
+        elif percent:
+            c.execute("""
+                SELECT card_number, cust_surname, cust_name, cust_patronymic,
+                       phone_number, city, street, zip_code, percent
+                FROM Customer_Card
+                WHERE percent = %s
+                ORDER BY cust_surname
+            """, [percent])
+        elif surname:
+            c.execute("""
+                SELECT card_number, cust_surname, cust_name, cust_patronymic,
+                       phone_number, city, street, zip_code, percent
+                FROM Customer_Card
+                WHERE cust_surname LIKE %s
+                ORDER BY cust_surname
+            """, [f'%{surname}%'])
+        else:
+            c.execute("""
+                SELECT card_number, cust_surname, cust_name, cust_patronymic,
+                       phone_number, city, street, zip_code, percent
+                FROM Customer_Card
+                ORDER BY cust_surname
+            """)
         return dictfetchall(c)
 
 
@@ -351,7 +445,10 @@ def update_customer(d):
 
 def delete_customer(card):
     with connection.cursor() as c:
-        c.execute("DELETE FROM Customer_Card WHERE card_number = %s", [card])
+        c.execute("""
+            DELETE FROM Customer_Card
+            WHERE card_number = %s
+        """, [card])
 
 
 # ═══════════════════════════════════════════════════════════
@@ -360,28 +457,106 @@ def delete_customer(card):
 
 def get_checks(employee_id=None, date_from=None, date_to=None):
     with connection.cursor() as c:
-        sql = """
-            SELECT CH.check_number, CH.id_employee, CH.card_number,
-                   CH.print_date, CH.sum_total, CH.vat,
-                   E.empl_surname || ' ' || E.empl_name AS cashier_name,
-                   CC.cust_surname
-            FROM Chek CH
-            JOIN Employee E ON E.id_employee = CH.id_employee
-            LEFT JOIN Customer_Card CC ON CC.card_number = CH.card_number
-            WHERE 1=1
-        """
-        params = []
-        if employee_id:
-            sql += " AND CH.id_employee = %s"
-            params.append(employee_id)
-        if date_from:
-            sql += " AND DATE(CH.print_date) >= %s"
-            params.append(date_from)
-        if date_to:
-            sql += " AND DATE(CH.print_date) <= %s"
-            params.append(date_to)
-        sql += " ORDER BY CH.print_date DESC"
-        c.execute(sql, params)
+        if employee_id and date_from and date_to:
+            c.execute("""
+                SELECT CH.check_number, CH.id_employee, CH.card_number,
+                       CH.print_date, CH.sum_total, CH.vat,
+                       E.empl_surname || ' ' || E.empl_name AS cashier_name,
+                       CC.cust_surname
+                FROM Chek CH
+                JOIN Employee E ON E.id_employee = CH.id_employee
+                LEFT JOIN Customer_Card CC ON CC.card_number = CH.card_number
+                WHERE CH.id_employee = %s
+                  AND DATE(CH.print_date) >= %s
+                  AND DATE(CH.print_date) <= %s
+                ORDER BY CH.print_date DESC
+            """, [employee_id, date_from, date_to])
+        elif employee_id and date_from:
+            c.execute("""
+                SELECT CH.check_number, CH.id_employee, CH.card_number,
+                       CH.print_date, CH.sum_total, CH.vat,
+                       E.empl_surname || ' ' || E.empl_name AS cashier_name,
+                       CC.cust_surname
+                FROM Chek CH
+                JOIN Employee E ON E.id_employee = CH.id_employee
+                LEFT JOIN Customer_Card CC ON CC.card_number = CH.card_number
+                WHERE CH.id_employee = %s
+                  AND DATE(CH.print_date) >= %s
+                ORDER BY CH.print_date DESC
+            """, [employee_id, date_from])
+        elif employee_id and date_to:
+            c.execute("""
+                SELECT CH.check_number, CH.id_employee, CH.card_number,
+                       CH.print_date, CH.sum_total, CH.vat,
+                       E.empl_surname || ' ' || E.empl_name AS cashier_name,
+                       CC.cust_surname
+                FROM Chek CH
+                JOIN Employee E ON E.id_employee = CH.id_employee
+                LEFT JOIN Customer_Card CC ON CC.card_number = CH.card_number
+                WHERE CH.id_employee = %s
+                  AND DATE(CH.print_date) <= %s
+                ORDER BY CH.print_date DESC
+            """, [employee_id, date_to])
+        elif employee_id:
+            c.execute("""
+                SELECT CH.check_number, CH.id_employee, CH.card_number,
+                       CH.print_date, CH.sum_total, CH.vat,
+                       E.empl_surname || ' ' || E.empl_name AS cashier_name,
+                       CC.cust_surname
+                FROM Chek CH
+                JOIN Employee E ON E.id_employee = CH.id_employee
+                LEFT JOIN Customer_Card CC ON CC.card_number = CH.card_number
+                WHERE CH.id_employee = %s
+                ORDER BY CH.print_date DESC
+            """, [employee_id])
+        elif date_from and date_to:
+            c.execute("""
+                SELECT CH.check_number, CH.id_employee, CH.card_number,
+                       CH.print_date, CH.sum_total, CH.vat,
+                       E.empl_surname || ' ' || E.empl_name AS cashier_name,
+                       CC.cust_surname
+                FROM Chek CH
+                JOIN Employee E ON E.id_employee = CH.id_employee
+                LEFT JOIN Customer_Card CC ON CC.card_number = CH.card_number
+                WHERE DATE(CH.print_date) >= %s
+                  AND DATE(CH.print_date) <= %s
+                ORDER BY CH.print_date DESC
+            """, [date_from, date_to])
+        elif date_from:
+            c.execute("""
+                SELECT CH.check_number, CH.id_employee, CH.card_number,
+                       CH.print_date, CH.sum_total, CH.vat,
+                       E.empl_surname || ' ' || E.empl_name AS cashier_name,
+                       CC.cust_surname
+                FROM Chek CH
+                JOIN Employee E ON E.id_employee = CH.id_employee
+                LEFT JOIN Customer_Card CC ON CC.card_number = CH.card_number
+                WHERE DATE(CH.print_date) >= %s
+                ORDER BY CH.print_date DESC
+            """, [date_from])
+        elif date_to:
+            c.execute("""
+                SELECT CH.check_number, CH.id_employee, CH.card_number,
+                       CH.print_date, CH.sum_total, CH.vat,
+                       E.empl_surname || ' ' || E.empl_name AS cashier_name,
+                       CC.cust_surname
+                FROM Chek CH
+                JOIN Employee E ON E.id_employee = CH.id_employee
+                LEFT JOIN Customer_Card CC ON CC.card_number = CH.card_number
+                WHERE DATE(CH.print_date) <= %s
+                ORDER BY CH.print_date DESC
+            """, [date_to])
+        else:
+            c.execute("""
+                SELECT CH.check_number, CH.id_employee, CH.card_number,
+                       CH.print_date, CH.sum_total, CH.vat,
+                       E.empl_surname || ' ' || E.empl_name AS cashier_name,
+                       CC.cust_surname
+                FROM Chek CH
+                JOIN Employee E ON E.id_employee = CH.id_employee
+                LEFT JOIN Customer_Card CC ON CC.card_number = CH.card_number
+                ORDER BY CH.print_date DESC
+            """)
         return dictfetchall(c)
 
 
@@ -443,50 +618,109 @@ def create_check(d, items):
 
 def delete_check(check_number):
     with connection.cursor() as c:
-        c.execute("DELETE FROM Sale WHERE check_number = %s", [check_number])
-        c.execute("DELETE FROM Chek WHERE check_number = %s", [check_number])
+        c.execute("""
+            DELETE FROM Sale
+            WHERE check_number = %s
+        """, [check_number])
+        c.execute("""
+            DELETE FROM Chek
+            WHERE check_number = %s
+        """, [check_number])
 
 
 def get_total_sales(employee_id=None, date_from=None, date_to=None):
     with connection.cursor() as c:
-        sql = """
-            SELECT COALESCE(SUM(sum_total), 0) AS total
-            FROM Chek
-            WHERE 1=1
-        """
-        params = []
-        if employee_id:
-            sql += " AND id_employee = %s"
-            params.append(employee_id)
-        if date_from:
-            sql += " AND DATE(print_date) >= %s"
-            params.append(date_from)
-        if date_to:
-            sql += " AND DATE(print_date) <= %s"
-            params.append(date_to)
-        c.execute(sql, params)
+        if employee_id and date_from and date_to:
+            c.execute("""
+                SELECT SUM(sum_total) AS total
+                FROM Chek
+                WHERE id_employee = %s
+                  AND DATE(print_date) >= %s
+                  AND DATE(print_date) <= %s
+            """, [employee_id, date_from, date_to])
+        elif employee_id and date_from:
+            c.execute("""
+                SELECT SUM(sum_total) AS total
+                FROM Chek
+                WHERE id_employee = %s
+                  AND DATE(print_date) >= %s
+            """, [employee_id, date_from])
+        elif employee_id and date_to:
+            c.execute("""
+                SELECT SUM(sum_total) AS total
+                FROM Chek
+                WHERE id_employee = %s
+                  AND DATE(print_date) <= %s
+            """, [employee_id, date_to])
+        elif employee_id:
+            c.execute("""
+                SELECT SUM(sum_total) AS total
+                FROM Chek
+                WHERE id_employee = %s
+            """, [employee_id])
+        elif date_from and date_to:
+            c.execute("""
+                SELECT SUM(sum_total) AS total
+                FROM Chek
+                WHERE DATE(print_date) >= %s
+                  AND DATE(print_date) <= %s
+            """, [date_from, date_to])
+        elif date_from:
+            c.execute("""
+                SELECT SUM(sum_total) AS total
+                FROM Chek
+                WHERE DATE(print_date) >= %s
+            """, [date_from])
+        elif date_to:
+            c.execute("""
+                SELECT SUM(sum_total) AS total
+                FROM Chek
+                WHERE DATE(print_date) <= %s
+            """, [date_to])
+        else:
+            c.execute("""
+                SELECT SUM(sum_total) AS total
+                FROM Chek
+            """)
         row = c.fetchone()
-        return row[0] if row else 0
+        return row[0] if row and row[0] else 0
 
 
 def get_product_units_sold(upc, date_from=None, date_to=None):
     with connection.cursor() as c:
-        sql = """
-            SELECT COALESCE(SUM(S.product_number), 0) AS total
-            FROM Sale S
-            JOIN Chek CH ON CH.check_number = S.check_number
-            WHERE S.UPC = %s
-        """
-        params = [upc]
-        if date_from:
-            sql += " AND DATE(CH.print_date) >= %s"
-            params.append(date_from)
-        if date_to:
-            sql += " AND DATE(CH.print_date) <= %s"
-            params.append(date_to)
-        c.execute(sql, params)
+        if date_from and date_to:
+            c.execute("""
+                SELECT SUM(S.product_number) AS total
+                FROM Sale S
+                JOIN Chek CH ON CH.check_number = S.check_number
+                WHERE S.UPC = %s
+                  AND DATE(CH.print_date) >= %s
+                  AND DATE(CH.print_date) <= %s
+            """, [upc, date_from, date_to])
+        elif date_from:
+            c.execute("""
+                SELECT SUM(S.product_number) AS total
+                FROM Sale S
+                JOIN Chek CH ON CH.check_number = S.check_number
+                WHERE S.UPC = %s
+                  AND DATE(CH.print_date) >= %s
+            """, [upc, date_from])
+        elif date_to:
+            c.execute("""
+                SELECT SUM(S.product_number) AS total
+                FROM Sale S
+                JOIN Chek CH ON CH.check_number = S.check_number
+                WHERE S.UPC = %s
+                  AND DATE(CH.print_date) <= %s
+            """, [upc, date_to])
+        else:
+            c.execute("""
+                SELECT SUM(S.product_number) AS total
+                FROM Sale S
+                WHERE S.UPC = %s
+            """, [upc])
         row = c.fetchone()
-        return row[0] if row else 0
+        return row[0] if row and row[0] else 0
 
 
 # ═══════════════════════════════════════════════════════════
@@ -495,33 +729,78 @@ def get_product_units_sold(upc, date_from=None, date_to=None):
 
 def query_categories_with_sales(date_from=None, date_to=None):
     with connection.cursor() as c:
-        sql = """
-            SELECT C.category_number,
-                   C.category_name,
-                   COUNT(DISTINCT SP.UPC)            AS distinct_products_count,
-                   SUM(S.product_number)             AS total_units_sold,
-                   SUM(S.product_number * S.selling_price) AS total_sales_amount,
-                   AVG(S.selling_price)              AS avg_selling_price
-            FROM Category C
-            JOIN Product P       ON P.category_number = C.category_number
-            JOIN Store_Product SP ON SP.id_product    = P.id_product
-            JOIN Sale S          ON S.UPC             = SP.UPC
-            JOIN Chek CH         ON CH.check_number   = S.check_number
-            WHERE 1=1
-        """
-        params = []
-        if date_from:
-            sql += " AND DATE(CH.print_date) >= %s"
-            params.append(date_from)
-        if date_to:
-            sql += " AND DATE(CH.print_date) <= %s"
-            params.append(date_to)
-        sql += """
-            GROUP BY C.category_number, C.category_name
-            HAVING SUM(S.product_number) > 100
-            ORDER BY SUM(S.product_number * S.selling_price) DESC
-        """
-        c.execute(sql, params)
+        if date_from and date_to:
+            c.execute("""
+                SELECT C.category_number,
+                       C.category_name,
+                       COUNT(DISTINCT SP.UPC)                  AS distinct_products_count,
+                       SUM(S.product_number)                   AS total_units_sold,
+                       SUM(S.product_number * S.selling_price) AS total_sales_amount,
+                       AVG(S.selling_price)                    AS avg_selling_price
+                FROM Category C
+                JOIN Product P        ON P.category_number = C.category_number
+                JOIN Store_Product SP ON SP.id_product     = P.id_product
+                JOIN Sale S           ON S.UPC             = SP.UPC
+                JOIN Chek CH          ON CH.check_number   = S.check_number
+                WHERE DATE(CH.print_date) >= %s
+                  AND DATE(CH.print_date) <= %s
+                GROUP BY C.category_number, C.category_name
+                HAVING SUM(S.product_number) > 100
+                ORDER BY SUM(S.product_number * S.selling_price) DESC
+            """, [date_from, date_to])
+        elif date_from:
+            c.execute("""
+                SELECT C.category_number,
+                       C.category_name,
+                       COUNT(DISTINCT SP.UPC)                  AS distinct_products_count,
+                       SUM(S.product_number)                   AS total_units_sold,
+                       SUM(S.product_number * S.selling_price) AS total_sales_amount,
+                       AVG(S.selling_price)                    AS avg_selling_price
+                FROM Category C
+                JOIN Product P        ON P.category_number = C.category_number
+                JOIN Store_Product SP ON SP.id_product     = P.id_product
+                JOIN Sale S           ON S.UPC             = SP.UPC
+                JOIN Chek CH          ON CH.check_number   = S.check_number
+                WHERE DATE(CH.print_date) >= %s
+                GROUP BY C.category_number, C.category_name
+                HAVING SUM(S.product_number) > 100
+                ORDER BY SUM(S.product_number * S.selling_price) DESC
+            """, [date_from])
+        elif date_to:
+            c.execute("""
+                SELECT C.category_number,
+                       C.category_name,
+                       COUNT(DISTINCT SP.UPC)                  AS distinct_products_count,
+                       SUM(S.product_number)                   AS total_units_sold,
+                       SUM(S.product_number * S.selling_price) AS total_sales_amount,
+                       AVG(S.selling_price)                    AS avg_selling_price
+                FROM Category C
+                JOIN Product P        ON P.category_number = C.category_number
+                JOIN Store_Product SP ON SP.id_product     = P.id_product
+                JOIN Sale S           ON S.UPC             = SP.UPC
+                JOIN Chek CH          ON CH.check_number   = S.check_number
+                WHERE DATE(CH.print_date) <= %s
+                GROUP BY C.category_number, C.category_name
+                HAVING SUM(S.product_number) > 100
+                ORDER BY SUM(S.product_number * S.selling_price) DESC
+            """, [date_to])
+        else:
+            c.execute("""
+                SELECT C.category_number,
+                       C.category_name,
+                       COUNT(DISTINCT SP.UPC)                  AS distinct_products_count,
+                       SUM(S.product_number)                   AS total_units_sold,
+                       SUM(S.product_number * S.selling_price) AS total_sales_amount,
+                       AVG(S.selling_price)                    AS avg_selling_price
+                FROM Category C
+                JOIN Product P        ON P.category_number = C.category_number
+                JOIN Store_Product SP ON SP.id_product     = P.id_product
+                JOIN Sale S           ON S.UPC             = SP.UPC
+                JOIN Chek CH          ON CH.check_number   = S.check_number
+                GROUP BY C.category_number, C.category_name
+                HAVING SUM(S.product_number) > 100
+                ORDER BY SUM(S.product_number * S.selling_price) DESC
+            """)
         return dictfetchall(c)
 
 
@@ -532,48 +811,24 @@ def query_cashiers_only_promo():
                    E.empl_name, E.empl_patronymic
             FROM Employee E
             WHERE EXISTS (
-                SELECT 1
+                SELECT CH.check_number
                 FROM Chek CH
                 WHERE CH.id_employee = E.id_employee
             )
             AND NOT EXISTS (
-                SELECT 1
+                SELECT CH.check_number
                 FROM Chek CH
-                JOIN Sale S          ON S.check_number = CH.check_number
+                JOIN Sale S           ON S.check_number = CH.check_number
                 JOIN Store_Product SP ON SP.UPC         = S.UPC
                 WHERE CH.id_employee = E.id_employee
                 AND NOT EXISTS (
-                    SELECT 1
+                    SELECT SP2.UPC
                     FROM Store_Product SP2
                     WHERE SP2.UPC = S.UPC
                       AND SP2.promotional_product = 1
                 )
             )
             ORDER BY E.empl_surname, E.empl_name
-        """)
-        return dictfetchall(c)
-def get_cashiers():
-    with connection.cursor() as c:
-        c.execute("""
-            SELECT id_employee, empl_surname, empl_name, empl_patronymic,
-                   empl_role, salary, date_of_birth, date_of_start,
-                   phone_number, city, street, zip_code
-            FROM Employee
-            WHERE empl_role IN ('Cashier', 'Касир')
-            ORDER BY empl_surname
-        """)
-        return dictfetchall(c)
-
-
-def get_managers():
-    with connection.cursor() as c:
-        c.execute("""
-            SELECT id_employee, empl_surname, empl_name, empl_patronymic,
-                   empl_role, salary, date_of_birth, date_of_start,
-                   phone_number, city, street, zip_code
-            FROM Employee
-            WHERE empl_role IN ('Manager', 'Менеджер')
-            ORDER BY empl_surname
         """)
         return dictfetchall(c)
 
