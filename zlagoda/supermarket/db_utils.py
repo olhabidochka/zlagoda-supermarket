@@ -151,6 +151,8 @@ def delete_category(num):
         """, [num])
 
 
+
+
 # ═══════════════════════════════════════════════════════════
 # PRODUCTS
 # ═══════════════════════════════════════════════════════════
@@ -207,6 +209,9 @@ def update_product(d):
         """, [d['category_number'], d['product_name'],
               d.get('producer', ''), d['characteristics'], d['id_product']])
 
+def delete_product(pid):
+    with connection.cursor() as c:
+        c.execute("DELETE FROM Product WHERE id_product = %s", [pid])
 
 # ═══════════════════════════════════════════════════════════
 # STORE PRODUCTS

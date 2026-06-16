@@ -12,7 +12,7 @@
 <nav>
   <a class="brand" href="{% url 'dashboard' %}">.✦ ݁˖ ZLAGODA</a>
   <ul>
-    {% if role == 'Manager' or role == 'Менеджер' %}
+    {% if role == 'Менеджер' or role == 'Manager' %}
       <li><a href="{% url 'employees' %}">Персонал</a></li>
     {% endif %}
     <li><a href="{% url 'categories' %}">Категорії</a></li>
@@ -20,10 +20,10 @@
     <li><a href="{% url 'store_products' %}">В магазині</a></li>
     <li><a href="{% url 'customers' %}">Клієнти</a></li>
     <li><a href="{% url 'checks' %}">Чеки</a></li>
-    {% if role == 'Manager' or role == 'Менеджер' %}
+ {% if role == 'Менеджер' or role == 'Manager' %}
       <li><a href="{% url 'units_sold' %}">Продажі</a></li>
       <li><a href="{% url 'reports' %}">Звіти</a></li>
-      <li><a href="{% url 'queries' %}">Запити</a></li>
+      <li><a href="{% url 'queries' %}">Додаткові функції</a></li>
     {% endif %}
     <li><a href="{% url 'profile' %}">Профіль</a></li>
     <li>

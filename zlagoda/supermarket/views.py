@@ -148,6 +148,25 @@ def employee_edit(request, pk):
     max_date = (date.today() - relativedelta(years=18)).isoformat()
     emp_list = db.get_employee_by_id(pk)
     emp = emp_list[0] if emp_list else {}
+
+    if emp:
+        if emp.get('date_of_birth'):
+            try:
+                dob = str(emp['date_of_birth'])
+                if len(dob) > 10:
+                    dob = dob[:10]
+                emp['date_of_birth'] = dob
+            except:
+                emp['date_of_birth'] = ''
+        if emp.get('date_of_start'):
+            try:
+                dos = str(emp['date_of_start'])
+                if len(dos) > 10:
+                    dos = dos[:10]
+                emp['date_of_start'] = dos
+            except:
+                emp['date_of_start'] = ''
+
     if request.method == 'POST':
         data = flatten_post(request.POST)
         data['id_employee'] = pk
@@ -173,6 +192,7 @@ def employee_edit(request, pk):
                 User.objects.create_user(username=pk, password=new_password)
         messages.success(request, 'Дані працівника оновлено')
         return redirect('employees')
+
     return render(request, 'supermarket/employee_form.html', {
         'action': 'Редагувати', 'emp': emp, 'max_date': max_date
     })
@@ -631,6 +651,24 @@ def profile_edit(request):
     emp = get_current_emp(request)
     if not emp:
         return redirect('dashboard')
+
+    if emp.get('date_of_birth'):
+        try:
+            dob = str(emp['date_of_birth'])
+            if len(dob) > 10:
+                dob = dob[:10]
+            emp['date_of_birth'] = dob
+        except:
+            emp['date_of_birth'] = ''
+
+    if emp.get('date_of_start'):
+        try:
+            dos = str(emp['date_of_start'])
+            if len(dos) > 10:
+                dos = dos[:10]
+            emp['date_of_start'] = dos
+        except:
+            emp['date_of_start'] = ''
 
     if request.method == 'POST':
         data = flatten_post(request.POST)

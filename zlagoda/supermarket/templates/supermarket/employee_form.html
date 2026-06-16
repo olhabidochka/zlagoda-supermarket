@@ -6,58 +6,110 @@
   <form method="post">
     {% csrf_token %}
     <div class="form-row">
-      <div class="form-group"><label>ID працівника</label>
-        <input type="text" name="id_employee" value="{{ emp.id_employee }}" {% if action == 'Редагувати' %}readonly{% endif %} required></div>
-      <div class="form-group"><label>Посада</label>
+      <div class="form-group">
+        <label>ID працівника</label>
+        <input type="text" name="id_employee" value="{{ emp.id_employee }}"
+               {% if action == 'Редагувати' %}readonly{% endif %} required>
+      </div>
+      <div class="form-group">
+        <label>Посада</label>
         <select name="empl_role">
-          <option value="Manager" {% if emp.empl_role == 'Manager' %}selected{% endif %}>Manager</option>
-          <option value="Cashier" {% if emp.empl_role == 'Cashier' %}selected{% endif %}>Cashier</option>
+          <option value="Менеджер" {% if emp.empl_role == 'Менеджер' or emp.empl_role == 'Manager' %}selected{% endif %}>Менеджер</option>
+          <option value="Касир" {% if emp.empl_role == 'Касир' or emp.empl_role == 'Cashier' %}selected{% endif %}>Касир</option>
         </select>
       </div>
     </div>
+
     <div class="form-row-3">
-      <div class="form-group"><label>Прізвище</label><input type="text" name="empl_surname" value="{{ emp.empl_surname }}" required></div>
-      <div class="form-group"><label>Ім'я</label><input type="text" name="empl_name" value="{{ emp.empl_name }}" required></div>
-      <div class="form-group"><label>По батькові</label><input type="text" name="empl_patronymic" value="{{ emp.empl_patronymic }}"></div>
+      <div class="form-group">
+        <label>Прізвище</label>
+        <input type="text" name="empl_surname" value="{{ emp.empl_surname }}" required>
+      </div>
+      <div class="form-group">
+        <label>Ім'я</label>
+        <input type="text" name="empl_name" value="{{ emp.empl_name }}" required>
+      </div>
+      <div class="form-group">
+        <label>По батькові</label>
+        <input type="text" name="empl_patronymic" value="{{ emp.empl_patronymic }}">
+      </div>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label>Зарплата</label><input type="number" step="0.01" name="salary" value="{{ emp.salary }}" required></div>
-      <div class="form-group"><label>Телефон (макс 13 символів)</label><input type="text" name="phone_number" maxlength="13" value="{{ emp.phone_number }}" required></div>
-    </div>
+
     <div class="form-row">
       <div class="form-group">
-  <label>Дата народження <span style="color:var(--muted);font-size:.8rem">(працівник має бути старше 18 років)</span></label>
-  <input type="date" name="date_of_birth"
-         value="{{ emp.date_of_birth }}"
-         max="{{ max_date }}"
-         required>
-</div>
-      <div class="form-group"><label>Дата початку роботи</label><input type="date" name="date_of_start" value="{{ emp.date_of_start }}" required></div>
+        <label>Зарплата</label>
+        <input type="number" step="0.01" name="salary" value="{{ emp.salary }}" required>
+      </div>
+      <div class="form-group">
+        <label>Телефон (макс 13 символів)</label>
+        <input type="text" name="phone_number" maxlength="13" value="{{ emp.phone_number }}" required>
+      </div>
     </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Дата народження (старше 18 років)</label>
+        <input type="date" name="date_of_birth"
+               value="{{ emp.date_of_birth }}"
+               max="{{ max_date }}" required>
+      </div>
+      <div class="form-group">
+        <label>Дата початку роботи</label>
+        <input type="date" name="date_of_start"
+               value="{{ emp.date_of_start }}" required>
+      </div>
+    </div>
+
     <div class="form-row-3">
-      <div class="form-group"><label>Місто</label><input type="text" name="city" value="{{ emp.city }}" required></div>
-      <div class="form-group"><label>Вулиця</label><input type="text" name="street" value="{{ emp.street }}" required></div>
-      <div class="form-group"><label>Індекс</label><input type="text" name="zip_code" value="{{ emp.zip_code }}" required></div>
+      <div class="form-group">
+        <label>Місто</label>
+        <input type="text" name="city" value="{{ emp.city }}" required>
+      </div>
+      <div class="form-group">
+        <label>Вулиця</label>
+        <input type="text" name="street" value="{{ emp.street }}" required>
+      </div>
+      <div class="form-group">
+        <label>Індекс</label>
+        <input type="text" name="zip_code" value="{{ emp.zip_code }}" required>
+      </div>
     </div>
-  {% if action == 'Додати' %}
-<div class="form-row">
-  <div class="form-group">
-    <label>Пароль для входу в систему</label>
-    <input type="password" name="password" required minlength="8">
-  </div>
-  <div class="form-group">
-    <label>Підтвердити пароль</label>
-    <input type="password" name="password_confirm" required minlength="8">
-  </div>
-</div>
-{% endif %}
-<button class="btn btn-green">{{ action }}</button>
-<a href="{% url 'employees' %}" class="btn btn-outline">Скасувати</a>
+
+    {% if action == 'Додати' %}
+    <div class="form-row">
+      <div class="form-group">
+        <label>Пароль</label>
+        <input type="password" name="password" required minlength="8">
+      </div>
+      <div class="form-group">
+        <label>Підтвердити пароль</label>
+        <input type="password" name="password_confirm" required minlength="8">
+      </div>
+    </div>
+    {% endif %}
+
+    {% if action == 'Редагувати' %}
+    <div style="border-top:1px solid var(--border);margin:1.2rem 0;padding-top:1.2rem">
+      <div style="font-size:.95rem;font-weight:600;color:var(--green-dark);margin-bottom:.8rem">
+        🔒 Зміна пароля
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Новий пароль <span style="color:var(--muted);font-size:.8rem"></span></label>
+          <input type="password" name="new_password" minlength="8">
+        </div>
+        <div class="form-group">
+          <label>Підтвердити новий пароль</label>
+          <input type="password" name="new_password_confirm" minlength="8">
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div style="display:flex;gap:.8rem;margin-top:.5rem">
+      <button class="btn btn-green">{{ action }}</button>
+      <a href="{% url 'employees' %}" class="btn btn-outline">Скасувати</a>
+    </div>
   </form>
-</div>{% if action == 'Редагувати' %}
-<div class="form-group">
-  <label>Новий пароль (залиш порожнім якщо не змінювати)</label>
-  <input type="password" name="new_password" minlength="8">
 </div>
-{% endif %}
 {% endblock %}
